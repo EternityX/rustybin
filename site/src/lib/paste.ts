@@ -2,7 +2,9 @@ import { decryptData, encryptData, generateEncryptionKey } from "./enc";
 import { z } from "zod";
 
 const API_BASE_URL =
-  process.env.NODE_ENV === "production" ? "/api" : "http://127.0.0.1:3001/api";
+  process.env.NODE_ENV === "production"
+    ? process.env.VITE_API_URL
+    : "http://127.0.0.1:3001/v1";
 
 // Zod schemas for validation
 const PasteSchema = z.object({
