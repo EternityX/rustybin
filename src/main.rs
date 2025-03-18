@@ -193,6 +193,7 @@ async fn main() {
         .allow_origin([
             "https://rustybin.net".parse().unwrap(),
             "http://localhost:8080".parse().unwrap(),
+            "https://api.rustybin.net".parse().unwrap(),
         ])
         .allow_methods([
             axum::http::Method::GET,
@@ -235,9 +236,11 @@ async fn main() {
 
     // Build our application with routes
     let app = Router::new()
-        .route("/api/pastes", post(create_paste))
-        .route("/api/pastes/{id}", get(get_paste))
-        .route("/api/pastes/{id}", delete(delete_paste))
+        .route("/v1/health", get(health_check))
+        .route("/v1/pastes", get(list_pastes))
+        .route("/v1/pastes", post(create_paste))
+        .route("/v1/pastes/{id}", get(get_paste))
+        .route("/v1/pastes/{id}", delete(delete_paste))
         .with_state(db.clone())
         .layer(cors)
         .layer(middleware::from_fn_with_state(
@@ -325,6 +328,16 @@ async fn delete_paste(
         )
             .into_response(),
     }
+}
+
+// Health check endpoint
+async fn health_check() -> impl IntoResponse {
+    Json(serde_json::json!({ "status": "ok" }))
+}
+
+// Handler for listing pastes (can be empty for now)
+async fn list_pastes() -> impl IntoResponse {
+    Json(serde_json::json!({ "pastes": [] }))
 }
 
 // Fallback handler for SPA in production
