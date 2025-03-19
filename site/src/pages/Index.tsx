@@ -9,6 +9,27 @@ import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { extractKeyFromUrl, getPaste, createPaste } from "@/lib/paste";
 
+// Debounce utility function that executes immediately then prevents re-execution during wait period
+const debounce = <F extends (...args: unknown[]) => unknown>(
+  func: F,
+  wait: number
+): ((...args: Parameters<F>) => void) => {
+  let isThrottled = false;
+
+  return function debouncedFunction(...args: Parameters<F>) {
+    // If not throttled, execute immediately
+    if (!isThrottled) {
+      func(...args);
+      isThrottled = true;
+
+      // Set a timeout to allow execution again after wait period
+      setTimeout(() => {
+        isThrottled = false;
+      }, wait);
+    }
+  };
+};
+
 const Index: React.FC = () => {
   const [text, setText] = useState("");
   const [language, setLanguage] = useState("javascript");
@@ -29,10 +50,10 @@ const Index: React.FC = () => {
     if (pasteSuccess) {
       if (clipboardSuccess) {
         toast.success(
-          "paste created! a shareable url was copied to your clipboard"
+          "Paste created! A shareable URL was copied to your clipboard"
         );
       } else {
-        toast.success("paste created! you are viewing your new paste");
+        toast.success("Paste created! You are viewing your new paste");
       }
 
       // Clear the success flags after showing the toast
@@ -66,7 +87,7 @@ const Index: React.FC = () => {
       console.log("Extracted key exists:", !!key);
 
       if (!key) {
-        toast.error("no key found in url");
+        toast.error("No key found in URL");
         setIsLoading(false);
         return;
       }
@@ -80,7 +101,7 @@ const Index: React.FC = () => {
 
         if (!paste) {
           console.log("No paste returned from getPaste");
-          toast.error("no paste found or invalid data");
+          toast.error("No paste found or invalid data");
           setIsLoading(false);
           return;
         }
@@ -129,7 +150,12 @@ const Index: React.FC = () => {
 
   const saveContent = useCallback(async () => {
     if (!textRef.current.trim()) {
-      toast.error("cannot save an empty paste");
+      toast.error("Cannot save an empty paste");
+      return;
+    }
+
+    if (id) {
+      toast.error("Cannot save a paste that already exists");
       return;
     }
 
@@ -145,7 +171,7 @@ const Index: React.FC = () => {
       toast.dismiss(loadingToast);
 
       if (!pasteUrl) {
-        toast.error("failed to create paste");
+        toast.error("Failed to create paste");
         return;
       }
 
@@ -207,9 +233,9 @@ const Index: React.FC = () => {
           .map((err) => `${err.path.join(".")}: ${err.message}`)
           .join(", ");
 
-        toast.error(`validation error: ${errorMessages}`);
+        toast.error(`Validation error: ${errorMessages}`);
       } else if (error instanceof Error) {
-        toast.error(`failed to create paste: ${error.message}`);
+        toast.error(`Failed to create paste: ${error.message}`);
       }
     } finally {
       setIsLoading(false);
@@ -217,25 +243,37 @@ const Index: React.FC = () => {
   }, [textRef, language, setIsLoading, navigate]);
 
   useEffect(() => {
+    const saveContentDebounced = debounce(() => {
+      if (currentPath !== "/") {
+        return;
+      }
+
+      if (!textRef.current.trim()) {
+        toast.error("Cannot save an empty paste");
+        return;
+      }
+      saveContent();
+    }, 1000);
+
+    const clearContentDebounced = debounce(() => {
+      setText("");
+      navigate("/");
+    }, 100);
+
     const down = (e: KeyboardEvent) => {
       if (e.key === "s" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        if (!textRef.current.trim()) {
-          toast.error("cannot save an empty paste");
-          return;
-        }
-        saveContent();
+        saveContentDebounced();
       }
 
       if (e.key === "o" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault();
-        setText("");
-        navigate("/");
+        clearContentDebounced();
       }
     };
     document.addEventListener("keydown", down);
     return () => document.removeEventListener("keydown", down);
-  }, [saveContent, clearContent]);
+  }, [saveContent, clearContent, navigate]);
 
   return (
     <Layout

@@ -54,9 +54,9 @@ const MainLayout = ({
     {
       path: "/",
       icon: <Plus className="h-4 w-4" />,
-      label: "new paste",
+      label: "new",
       shortcut: "ctrl+o",
-      className: "",
+      className: "text-nowrap hover:text-foreground/80",
       onClick: () => {
         if (!isLoading) {
           clearContent();
@@ -86,15 +86,15 @@ const MainLayout = ({
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-50 border-b bg-secondary">
-        <div className="flex h-8 items-center justify-between px-2">
+        <div className="flex h-8 items-center justify-between px-0 md:px-2">
           <div className="flex items-center gap-2">
             <Link
               to="/"
               className="flex items-center gap-1 text-lg font-semibold transition-opacity hover:opacity-80"
             >
-              <span className="text-foreground/50 font-extralight tracking-tight">
+              <span className="text-foreground/50 font-extralight tracking-tight sm:flex items-center hidden ">
                 {"// "}
-                <span className="text-primary text-xl font-semibold">
+                <span className="text-primary text-xl font-semibold ml-1">
                   rusty
                 </span>
                 <span className="text-xl text-foreground font-semibold">
@@ -112,7 +112,7 @@ const MainLayout = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-0">
             {showLanguageSelector && (
               <>
                 <div className="relative" ref={dropdownRef}>
@@ -154,7 +154,7 @@ const MainLayout = ({
 
             <PrismThemeToggle />
 
-            <nav className="flex items-center gap-4">
+            <nav className="flex items-center gap-2">
               {navItems.map((item) => (
                 <button
                   key={item.label}
@@ -170,10 +170,10 @@ const MainLayout = ({
                   }`}
                 >
                   {/* {item.icon} */}
-                  <span className="text-xs font-light text-foreground/75 bg-black/20 rounded-[3px] px-1.5 py-0.5">
+                  <span className="text-xs font-light text-foreground/75 bg-black/20 rounded-[3px] px-1 py-0.5 hidden md:inline -mr-2">
                     {item.shortcut}
                   </span>
-                  <span className="hidden sm:inline">{item.label}</span>
+                  <span className="inline px-2 py-2">{item.label}</span>
                 </button>
               ))}
             </nav>

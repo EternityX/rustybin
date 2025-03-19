@@ -92,7 +92,7 @@ export function PrismThemeToggle() {
         aria-label="Select syntax theme"
       >
         <span className="flex items-center gap-2">
-          <span className="hidden sm:inline">
+          <span className="flex items-center gap-1">
             <span
               className="inline-block w-3 h-3 rounded-full mr-1 align-middle"
               style={getSwatchStyle(
@@ -102,7 +102,6 @@ export function PrismThemeToggle() {
             />
             {currentTheme.label.toLowerCase()}
           </span>
-          <span className="sm:hidden">Syntax</span>
         </span>
         <ChevronDown className="w-4 h-4" />
       </button>
