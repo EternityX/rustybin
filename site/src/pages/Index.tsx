@@ -162,12 +162,32 @@ const Index: React.FC = () => {
 
       const pastePath = getPathFromUrl(pasteUrl);
 
+      // Construct the absolute URL for clipboard
+      const getAbsoluteUrl = (relativePath: string) => {
+        const origin = window.location.origin;
+        // Make sure we don't double-slash
+        const cleanPath = relativePath.startsWith("/")
+          ? relativePath.substring(1)
+          : relativePath;
+        return `${origin}/${cleanPath}`;
+      };
+
+      // Ensure the relative path doesn't have domain info
+      const cleanPath = pastePath.startsWith("http")
+        ? getPathFromUrl(pastePath)
+        : pastePath;
+
+      // Get the full absolute URL for the clipboard
+      const absoluteUrl = getAbsoluteUrl(cleanPath);
+
       try {
-        await navigator.clipboard.writeText(pasteUrl);
+        // Copy the full absolute URL to clipboard
+        await navigator.clipboard.writeText(absoluteUrl);
 
         localStorage.setItem("pasteSuccess", "true");
         localStorage.setItem("clipboardSuccess", "true");
 
+        // Navigate to just the path portion
         navigate(pastePath);
       } catch (clipboardError) {
         console.error("Failed to copy to clipboard:", clipboardError);
