@@ -46,7 +46,7 @@ const MainLayout = ({
         <Save className="h-4 w-4" />
       ),
       label: isLoading ? "saving..." : "save",
-      className: "text-green-400 hover:!text-foreground",
+      className: canSave ? "!text-green-400 hover:!text-green-500" : "hidden",
       onClick: () => !isLoading && saveContent(),
       disabled: isLoading || !canSave,
     },

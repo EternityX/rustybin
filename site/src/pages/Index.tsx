@@ -123,7 +123,7 @@ const Index: React.FC = () => {
 
   const saveContent = async () => {
     if (!text.trim()) {
-      toast.error("cannot save an empty   ");
+      toast.error("cannot save an empty paste");
       return;
     }
 

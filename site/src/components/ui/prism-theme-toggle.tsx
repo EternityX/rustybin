@@ -18,6 +18,10 @@ export function PrismThemeToggle() {
   const groupedThemes = useMemo(() => {
     // Identify light themes based on background color
     const isLightTheme = (bgColor: string) => {
+      if (bgColor === "#fff") {
+        return true;
+      }
+
       // Convert hex to RGB and calculate luminance
       const hex = bgColor.replace("#", "");
       const r = parseInt(hex.substr(0, 2), 16) / 255;

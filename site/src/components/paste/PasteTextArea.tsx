@@ -13,6 +13,7 @@ type PasteTextAreaProps = {
   readOnly?: boolean;
   isLoading?: boolean;
   showLineNumbers?: boolean;
+  autoFocus?: boolean;
 };
 
 const PasteTextArea: React.FC<PasteTextAreaProps> = ({
@@ -22,6 +23,7 @@ const PasteTextArea: React.FC<PasteTextAreaProps> = ({
   readOnly = false,
   isLoading = false,
   showLineNumbers = false,
+  autoFocus = true,
 }) => {
   const { background, textColor, currentTheme } = usePrismTheme();
   const editorRef = useRef<HTMLDivElement>(null);
@@ -32,6 +34,18 @@ const PasteTextArea: React.FC<PasteTextAreaProps> = ({
     "prism-funky",
     "prism-solarizedlight",
   ].includes(currentTheme.value);
+
+  // Auto-focus the editor when the component mounts
+  useEffect(() => {
+    if (autoFocus && editorRef.current && !readOnly && !isLoading) {
+      const textarea = editorRef.current.querySelector("textarea");
+      if (textarea) {
+        setTimeout(() => {
+          textarea.focus();
+        }, 0);
+      }
+    }
+  }, [autoFocus, readOnly, isLoading]);
 
   // Ensure styles are applied properly when theme changes
   useEffect(() => {
