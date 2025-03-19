@@ -46,6 +46,7 @@ const MainLayout = ({
         <Save className="h-4 w-4" />
       ),
       label: isLoading ? "saving..." : "save",
+      shortcut: "ctrl+s",
       className: canSave ? "!text-green-400 hover:!text-green-500" : "hidden",
       onClick: () => !isLoading && saveContent(),
       disabled: isLoading || !canSave,
@@ -54,6 +55,7 @@ const MainLayout = ({
       path: "/",
       icon: <Plus className="h-4 w-4" />,
       label: "new paste",
+      shortcut: "ctrl+o",
       className: "",
       onClick: () => {
         if (!isLoading) {
@@ -167,7 +169,10 @@ const MainLayout = ({
                     item.disabled ? "opacity-50 cursor-not-allowed" : ""
                   }`}
                 >
-                  {item.icon}
+                  {/* {item.icon} */}
+                  <span className="text-xs font-light text-foreground/75 bg-black/20 rounded-[3px] px-1.5 py-0.5">
+                    {item.shortcut}
+                  </span>
                   <span className="hidden sm:inline">{item.label}</span>
                 </button>
               ))}

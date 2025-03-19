@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useLocation, useParams } from "react-router-dom";
+import { useEffect, useState, useRef, useCallback } from "react";
+import { useLocation, useParams, useNavigate } from "react-router-dom";
 import { z } from "zod";
 
 import Layout from "@/components/layout/Layout";
@@ -14,9 +14,11 @@ const Index: React.FC = () => {
   const [language, setLanguage] = useState("javascript");
   const [isLoading, setIsLoading] = useState(false);
   const [isViewMode, setIsViewMode] = useState(false);
+  const textRef = useRef("");
 
   const { id } = useParams<{ id: string }>();
   const currentPath = useLocation().pathname;
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Check for paste success message in localStorage
@@ -112,17 +114,21 @@ const Index: React.FC = () => {
     fetchPaste();
   }, [currentPath, id]);
 
+  useEffect(() => {
+    textRef.current = text;
+  }, [text]);
+
   const handleLanguageChange = (newLanguage: string) => {
     console.log("Changing language to:", newLanguage);
     setLanguage(newLanguage);
   };
 
-  const clearContent = () => {
+  const clearContent = useCallback(() => {
     setText("");
-  };
+  }, [setText]);
 
-  const saveContent = async () => {
-    if (!text.trim()) {
+  const saveContent = useCallback(async () => {
+    if (!textRef.current.trim()) {
       toast.error("cannot save an empty paste");
       return;
     }
@@ -132,7 +138,7 @@ const Index: React.FC = () => {
 
     try {
       const pasteUrl = await createPaste({
-        data: text,
+        data: textRef.current,
         language,
       });
 
@@ -143,20 +149,33 @@ const Index: React.FC = () => {
         return;
       }
 
+      // Extract the path from the URL (in case it's a full URL)
+      const getPathFromUrl = (url: string) => {
+        try {
+          const urlObj = new URL(url);
+          return urlObj.pathname + urlObj.search + urlObj.hash;
+        } catch (e) {
+          // If it's not a valid URL with protocol, assume it's already a path
+          return url;
+        }
+      };
+
+      const pastePath = getPathFromUrl(pasteUrl);
+
       try {
         await navigator.clipboard.writeText(pasteUrl);
 
         localStorage.setItem("pasteSuccess", "true");
         localStorage.setItem("clipboardSuccess", "true");
 
-        window.location.href = pasteUrl;
+        navigate(pastePath);
       } catch (clipboardError) {
         console.error("Failed to copy to clipboard:", clipboardError);
 
         localStorage.setItem("pasteSuccess", "true");
         localStorage.setItem("clipboardSuccess", "false");
 
-        window.location.href = pasteUrl;
+        navigate(pastePath);
       }
     } catch (error) {
       toast.dismiss(loadingToast);
@@ -175,7 +194,28 @@ const Index: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [textRef, language, setIsLoading, navigate]);
+
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === "s" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        if (!textRef.current.trim()) {
+          toast.error("cannot save an empty paste");
+          return;
+        }
+        saveContent();
+      }
+
+      if (e.key === "o" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setText("");
+        navigate("/");
+      }
+    };
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, [saveContent, clearContent]);
 
   return (
     <Layout
