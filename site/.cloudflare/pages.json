@@ -1,6 +1,6 @@
 {
   "build": {
-    "command": "pnpm build",
+    "command": "cd site && npm install && npm run build",
     "output_directory": "dist",
     "root_directory": "./",
     "environment_variables": {
