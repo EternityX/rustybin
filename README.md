@@ -9,7 +9,7 @@ A modern, secure pastebin service built with Rust and React. RustyBin allows you
 - **Modern UI**: Built with React and TypeScript
 - **RESTful API**: API for creating, retrieving, and deleting pastes
 - **SQLite Database**: Lightweight, file-based database for storing pastes
-- **End-to-End Encryption**: Optional client-side encryption for sensitive data
+- **End-to-End Encryption**: Client-side encryption for sensitive data, server has no knowledge of the paste contents
 
 ## Getting Started
 
