@@ -1,4 +1,4 @@
-# RustyBin
+# [RustyBin](https://rustybin.net)
 
 A modern, secure pastebin service built with Rust and React. RustyBin allows you to create, view, and share text snippets with optional syntax highlighting and encryption.
 
