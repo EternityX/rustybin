@@ -188,13 +188,18 @@ async fn main() {
         .parse::<u16>()
         .expect("PORT must be a number");
 
+    // Get allowed origins from environment variable or use defaults
+    let allowed_origins_str = env::var("CORS_ALLOWED_ORIGINS")
+        .unwrap_or_else(|_| "https://rustybin.net,http://localhost:8080,https://api.rustybin.net".to_string());
+    
+    let allowed_origins: Vec<axum::http::HeaderValue> = allowed_origins_str
+        .split(',')
+        .map(|origin| origin.trim().parse().expect(&format!("Invalid origin URL: {}", origin)))
+        .collect();
+
     // Configure CORS
     let cors = CorsLayer::new()
-        .allow_origin([
-            "https://rustybin.net".parse().unwrap(),
-            "http://localhost:8080".parse().unwrap(),
-            "https://api.rustybin.net".parse().unwrap(),
-        ])
+        .allow_origin(allowed_origins)
         .allow_methods([
             axum::http::Method::GET,
             axum::http::Method::POST,
@@ -265,6 +270,7 @@ async fn main() {
     // Define the address to listen on
     let addr = SocketAddr::from(([0, 0, 0, 0], port));
     tracing::info!("Listening on {}", addr);
+    tracing::info!("CORS allowed origins: {}", allowed_origins_str);
     tracing::info!("Rate limiting enabled per IP:");
     tracing::info!("  - Read operations: {} per minute", read_limit);
     tracing::info!("  - Create operations: {} per minute", create_limit);

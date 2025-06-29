@@ -28,7 +28,7 @@ A modern, secure pastebin service built with Rust and React. RustyBin allows you
    cd rustybin
    ```
 
-2. Set up environment variables:
+2. (Optional) Set up environment variables:
 
    ```bash
    cp .env.example .env
@@ -42,6 +42,35 @@ A modern, secure pastebin service built with Rust and React. RustyBin allows you
 
 The backend server will start on http://localhost:3000 (or the port specified in your .env file).
 
+#### Backend Environment Variables
+
+The backend can be configured using the following environment variables:
+
+| Variable               | Description                                     | Default                                                               |
+| ---------------------- | ----------------------------------------------- | --------------------------------------------------------------------- |
+| `PORT`                 | Server port                                     | `3000`                                                                |
+| `RUST_ENV`             | Environment mode                                | `development`                                                         |
+| `CORS_ALLOWED_ORIGINS` | Comma-separated list of allowed CORS origins    | `https://rustybin.net,http://localhost:8080,https://api.rustybin.net` |
+| `READ_RATE_LIMIT`      | Read operations per minute per IP               | `45`                                                                  |
+| `CREATE_RATE_LIMIT`    | Create operations per minute per IP             | `15`                                                                  |
+| `DELETE_RATE_LIMIT`    | Delete operations per minute per IP             | `15`                                                                  |
+| `RUST_LOG`             | Logging level (error, warn, info, debug, trace) | `info`                                                                |
+
+**Example .env file:**
+
+```env
+PORT=3000
+RUST_ENV=development
+CORS_ALLOWED_ORIGINS=https://yourdomain.com,http://localhost:5173,http://localhost:8080
+READ_RATE_LIMIT=45
+CREATE_RATE_LIMIT=15
+DELETE_RATE_LIMIT=15
+RUST_LOG=info
+```
+
+**CORS Configuration:**
+To allow your frontend to connect to the backend, make sure to include your frontend's URL in the `CORS_ALLOWED_ORIGINS` environment variable. For local development, this typically includes `http://localhost:5173` (Vite's default port) or whichever port your frontend runs on.
+
 ### Frontend Setup
 
 1. Navigate to the frontend directory:
@@ -50,13 +79,32 @@ The backend server will start on http://localhost:3000 (or the port specified in
    cd site
    ```
 
-2. Install dependencies:
+2. Set up environment variables:
+
+   ```bash
+   cp .env.example .env
+   # Edit .env with your configuration
+   ```
+
+   The `.env` file should contain:
+
+   ```env
+   # For development - update the port to match your backend configuration
+   VITE_API_URL=http://127.0.0.1:3000/v1
+
+   # For production
+   # VITE_API_URL=https://yourdomain.com/v1
+   ```
+
+   **Note**: Make sure the port in `VITE_API_URL` matches the port your Rust backend is running on (configured in the backend's `.env` file).
+
+3. Install dependencies:
 
    ```bash
    pnpm install
    ```
 
-3. Start the development server:
+4. Start the development server:
    ```bash
    pnpm dev
    ```
