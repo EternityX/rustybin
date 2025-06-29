@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import Editor from "react-simple-code-editor";
 import { getPrismLanguage } from "@/utils/language-utils";
 import { highlightWithPrism } from "@/utils/prism-utils";
@@ -14,7 +14,31 @@ type PasteTextAreaProps = {
   isLoading?: boolean;
   showLineNumbers?: boolean;
   autoFocus?: boolean;
+  maxCharacters?: number;
+  onLimitExceeded?: (isExceeded: boolean) => void;
 };
+
+/**
+ * Calculates the byte length of a string in UTF-8 encoding
+ * This exactly matches Rust's String.as_bytes().len() behavior
+ */
+function getUtf8ByteLength(str: string): number {
+  // The TextEncoder uses UTF-8 by default
+  const encoder = new TextEncoder();
+  const bytes = encoder.encode(str);
+  return bytes.length;
+}
+
+/**
+ * Estimate encrypted size after AES encryption and base64 encoding
+ * The actual size may vary slightly but this gives a close approximation
+ */
+function getEstimatedEncryptedSize(byteLength: number): number {
+  // AES-GCM adds 16 bytes for the auth tag + 12 bytes for IV
+  const encryptedSize = byteLength + 28;
+  // Base64 encoding increases size by approximately 4/3
+  return Math.ceil(encryptedSize * 1.34);
+}
 
 const PasteTextArea: React.FC<PasteTextAreaProps> = ({
   text,
@@ -24,9 +48,17 @@ const PasteTextArea: React.FC<PasteTextAreaProps> = ({
   isLoading = false,
   showLineNumbers = false,
   autoFocus = true,
+  maxCharacters = 125000,
+  onLimitExceeded,
 }) => {
   const { background, textColor, currentTheme } = usePrismTheme();
   const editorRef = useRef<HTMLDivElement>(null);
+  const [charStats, setCharStats] = useState({
+    lines: 0,
+    bytes: 0,
+    encryptedBytes: 0,
+    remaining: maxCharacters,
+  });
 
   // Determine if we're using a light or dark theme
   const isLightTheme = [
@@ -61,6 +93,46 @@ const PasteTextArea: React.FC<PasteTextAreaProps> = ({
       });
     }
   }, [background, textColor, currentTheme]);
+
+  // Update character stats whenever text changes
+  useEffect(() => {
+    const calculateStats = () => {
+      if (!text)
+        return {
+          lines: 0,
+          bytes: 0,
+          encryptedBytes: 0,
+          remaining: maxCharacters,
+        };
+
+      // Count lines
+      const lines = text.split("\n").length;
+
+      // Get exact byte count using UTF-8 encoding
+      const bytes = getUtf8ByteLength(text);
+
+      // Calculate estimated encrypted size
+      const encryptedBytes = getEstimatedEncryptedSize(bytes);
+
+      // Calculate remaining space based on encrypted size
+      const remaining = maxCharacters - encryptedBytes;
+
+      return {
+        lines,
+        bytes,
+        encryptedBytes,
+        remaining,
+      };
+    };
+
+    const stats = calculateStats();
+    setCharStats(stats);
+
+    // Notify parent component if limit is exceeded
+    if (onLimitExceeded) {
+      onLimitExceeded(stats.remaining < 0);
+    }
+  }, [text, maxCharacters, onLimitExceeded]);
 
   const highlightCode = useCallback(
     (code: string) => {
@@ -113,6 +185,8 @@ const PasteTextArea: React.FC<PasteTextAreaProps> = ({
     );
   };
 
+  const isOverLimit = charStats.remaining < 0;
+
   return (
     <div className="inset-0 text-card-foreground overflow-hidden flex flex-col">
       <div
@@ -148,6 +222,33 @@ const PasteTextArea: React.FC<PasteTextAreaProps> = ({
           textareaClassName="outline-none relative z-[2]"
           placeholder={`paste away! your pastes are securely encrypted by your browser before they're saved,\nensuring rustybin can't read them. plus, they last forever.`}
         />
+
+        {/* Character counter */}
+        <div className="fixed bottom-2 right-3 text-xs font-mono z-10 select-none flex flex-col gap-1 bg-background/80 px-2 py-1 rounded-md">
+          <div className="flex items-center gap-2">
+            <span className="text-muted-foreground">
+              Lines: {charStats.lines}
+            </span>
+            <span className="mx-1">|</span>
+            <span className="text-muted-foreground">
+              Raw: {charStats.bytes} bytes
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
+            <span
+              className={cn(
+                "transition-colors",
+                isOverLimit
+                  ? "text-red-500 font-semibold"
+                  : "text-muted-foreground"
+              )}
+            >
+              {isOverLimit
+                ? `${Math.abs(charStats.remaining)} bytes over limit!`
+                : `Encrypted: ${charStats.encryptedBytes}/${maxCharacters} bytes`}
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );

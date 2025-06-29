@@ -44,6 +44,9 @@ pub enum DbError {
     
     #[error("Client-side encryption required")]
     ClientEncryptionRequired,
+    
+    #[error("Character limit exceeded: {0} characters (maximum: {1})")]
+    CharacterLimitExceeded(usize, usize),
 }
 
 // Database struct
@@ -72,7 +75,15 @@ struct PasteData {
 // Encryption version constants
 const ENCRYPTION_VERSION_CLIENT: u8 = 1;
 
+// Maximum character limit for pastes
+const MAX_PASTE_CHARACTERS: usize = 200000;
+
 impl Database {
+    // Helper function to get precise UTF-8 byte count
+    fn get_utf8_byte_count(text: &str) -> usize {
+        text.as_bytes().len()
+    }
+
     pub fn new() -> Self {
         // Ensure data directory exists
         let data_dir = PathBuf::from("data");
@@ -124,10 +135,9 @@ impl Database {
         
         stmt.next().expect("Failed to insert paste");
 
-        // Return a placeholder paste object with minimal information
         Paste {
             id,
-            data,
+            data: String::new(),
             language,
             created_at,
             encryption_version: ENCRYPTION_VERSION_CLIENT,
@@ -135,11 +145,20 @@ impl Database {
     }
 
     pub fn create_paste(&self, paste_data: CreatePasteData) -> Result<Paste, DbError> {
+        // Check character limit before processing - using explicit UTF-8 byte count
+        let byte_count = Self::get_utf8_byte_count(&paste_data.data);
+        
+        println!("Paste data length (bytes): {}", byte_count);
+        
+        if byte_count > MAX_PASTE_CHARACTERS {
+            return Err(DbError::CharacterLimitExceeded(byte_count, MAX_PASTE_CHARACTERS));
+        }
+        
         let id: String = rand::thread_rng()
-        .sample_iter(&Alphanumeric)
-        .take(6)
-        .map(char::from)
-        .collect();
+            .sample_iter(&Alphanumeric)
+            .take(6)
+            .map(char::from)
+            .collect();
 
         let now = Utc::now();
         
