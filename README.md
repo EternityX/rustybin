@@ -1,4 +1,4 @@
-# RustyBin
+# <img src="https://raw.githubusercontent.com/EternityX/rustybin/3ffa9b32aa8d5e5d5178ff7ee82ba288b440e9dc/site/public/favicon.svg" width="40" height="30"> [RustyBin](https://rustybin.net)
 
 A modern, secure pastebin service built with Rust and React. RustyBin allows you to create, view, and share text snippets with optional syntax highlighting and encryption.
 
@@ -9,7 +9,7 @@ A modern, secure pastebin service built with Rust and React. RustyBin allows you
 - **Modern UI**: Built with React and TypeScript
 - **RESTful API**: API for creating, retrieving, and deleting pastes
 - **SQLite Database**: Lightweight, file-based database for storing pastes
-- **End-to-End Encryption**: Optional client-side encryption for sensitive data
+- **End-to-End Encryption**: Client-side encryption for sensitive data, server has no knowledge of the paste contents
 
 ## Getting Started
 
