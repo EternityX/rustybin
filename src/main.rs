@@ -160,8 +160,8 @@ async fn rate_limit(
         Err(reset_after) => {
             // Request is not allowed, return a 429 Too Many Requests response
             let error_message = format!(
-                "Rate limit exceeded for IP {}. Try again in {} seconds",
-                ip, reset_after
+                "Rate limit exceeded. Try again in {} seconds",
+                reset_after
             );
             
             // Create response with rate limit headers
