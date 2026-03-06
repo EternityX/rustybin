@@ -276,8 +276,7 @@ async fn main() {
 
     // Add static file serving for production
     let app = if env::var("RUST_ENV").unwrap_or_default() == "production" {
-        app.nest_service("/", ServeDir::new("dist"))
-            .fallback(serve_spa)
+        app.fallback_service(ServeDir::new("dist").fallback(axum::routing::get(serve_spa)))
     } else {
         app
     };
