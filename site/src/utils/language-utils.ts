@@ -1,4 +1,14 @@
-export const unsortedLanguageOptions = [
+import { z } from "zod";
+
+/** Zod schema for a language option */
+const LanguageOptionSchema = z.object({
+  value: z.string(),
+  label: z.string(),
+});
+
+export type LanguageOption = z.infer<typeof LanguageOptionSchema>;
+
+export const unsortedLanguageOptions: LanguageOption[] = [
   { value: "rust", label: "rust" },
   { value: "javascript", label: "javascript" },
   { value: "jsx", label: "jsx" },

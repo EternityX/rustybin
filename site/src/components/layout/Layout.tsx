@@ -1,13 +1,36 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { ListOrdered, Plus, Save, ChevronDown, Loader2 } from "lucide-react";
 import {
-  languageOptions,
-  getPrismLanguage,
-  getLanguageLabel,
-} from "@/utils/language-utils";
-import { ThemeToggle } from "@/components/ui/theme-toggle";
-import { PrismThemeToggle } from "@/components/ui/prism-theme-toggle";
+  Plus,
+  Save,
+  Loader2,
+  Trash2,
+  Flame,
+  Clock,
+  ShieldCheck,
+  FileText,
+  Lock,
+  ScanEye,
+  Eye,
+} from "lucide-react";
+import SecurityInfo from "@/components/paste/SecurityInfo";
+import { languageOptions, getLanguageLabel } from "@/utils/language-utils";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import Terms from "../paste/Terms";
+import Privacy from "../paste/Privacy";
 
 type MainLayoutProps = {
   children: React.ReactNode;
@@ -19,7 +42,33 @@ type MainLayoutProps = {
   saveContent?: () => void;
   isLoading?: boolean;
   canSave?: boolean;
+  advancedMode?: boolean;
+  onAdvancedModeChange?: (value: boolean) => void;
+  showAdvancedToggle?: boolean;
+  burnAfterRead?: boolean;
+  onBurnAfterReadChange?: (value: boolean) => void;
+  expiresInMinutes?: number | null;
+  onExpiresInMinutesChange?: (value: number | null) => void;
+  canDelete?: boolean;
+  onDelete?: () => void;
+  byteCount?: number;
+  maxBytes?: number;
+  isOverLimit?: boolean;
+  showByteCounter?: boolean;
 };
+
+const EXPIRATION_OPTIONS = [
+  { value: "never", label: "Never" },
+  { value: "5", label: "5 minutes" },
+  { value: "15", label: "15 minutes" },
+  { value: "30", label: "30 minutes" },
+  { value: "60", label: "1 hour" },
+  { value: "240", label: "4 hours" },
+  { value: "720", label: "12 hours" },
+  { value: "1440", label: "24 hours" },
+  { value: "4320", label: "3 days" },
+  { value: "10080", label: "1 week" },
+];
 
 const MainLayout = ({
   children,
@@ -31,13 +80,41 @@ const MainLayout = ({
   saveContent = () => {},
   isLoading = false,
   canSave = true,
+  advancedMode = false,
+  onAdvancedModeChange = () => {},
+  showAdvancedToggle = false,
+  burnAfterRead = false,
+  onBurnAfterReadChange = () => {},
+  expiresInMinutes = null,
+  onExpiresInMinutesChange = () => {},
+  canDelete = false,
+  onDelete = () => {},
+  byteCount = 0,
+  maxBytes = 125000,
+  isOverLimit = false,
+  showByteCounter = false,
 }: MainLayoutProps) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  const [securityOpen, setSecurityOpen] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
+  const [privacyOpen, setPrivacyOpen] = useState(false);
 
   const navItems = [
+    {
+      path: "/",
+      icon: <Plus className="h-4 w-4" />,
+      label: "new",
+      shortcut: "ctrl+o",
+      className: "text-nowrap",
+      onClick: () => {
+        if (!isLoading) {
+          clearContent();
+          navigate("/");
+        }
+      },
+      disabled: isLoading,
+    },
     {
       path: "/",
       icon: isLoading ? (
@@ -53,51 +130,30 @@ const MainLayout = ({
     },
     {
       path: "/",
-      icon: <Plus className="h-4 w-4" />,
-      label: "new",
-      shortcut: "ctrl+o",
-      className: "text-nowrap hover:text-foreground/80",
-      onClick: () => {
-        if (!isLoading) {
-          clearContent();
-          navigate("/");
-        }
-      },
-      disabled: isLoading,
+      icon: <Trash2 className="h-4 w-4" />,
+      label: "delete",
+      className: canDelete
+        ? "border-l border-white/10 ml-[2px] rounded-none !text-red-400 hover:!text-red-500"
+        : "hidden",
+      onClick: () => !isLoading && onDelete(),
+      disabled: isLoading || !canDelete,
     },
   ];
 
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
-        setDropdownOpen(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
-
   return (
     <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-50 border-b bg-secondary">
-        <div className="flex h-8 items-center justify-between px-0 md:px-2">
-          <div className="flex items-center gap-2">
+      <header className="sticky top-0 z-50 border-b bg-[#0F0F0F]">
+        <div className="flex min-h-[35px] flex-col sm:flex-row sm:items-center sm:justify-between px-2 -mt-1 py-1 sm:py-0 sm:mt-0 gap-y-1">
+          <div className="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
             <Link
               to="/"
-              className="flex items-center gap-1 text-lg font-semibold transition-opacity hover:opacity-80"
+              className="items-center gap-1 text-lg font-semibold transition-opacity hidden md:flex"
             >
-              <span className="text-foreground/50 font-extralight tracking-tight sm:flex items-center hidden ">
-                {"// "}
-                <span className="text-primary text-xl font-semibold ml-1">
+              <span className="group text-[14px] uppercase tracking-wider font-bold text-primary hover:text-white transition-colors">
+                <span className="">
                   rusty
                 </span>
-                <span className="text-xl text-foreground font-semibold">
+                <span className="text-[14px] uppercase tracking-wider font-bold text-white group-hover:text-white/50 transition-colors">
                   bin
                 </span>
               </span>
@@ -112,49 +168,116 @@ const MainLayout = ({
             </div>
           </div>
 
-          <div className="flex items-center gap-0">
-            {showLanguageSelector && (
-              <>
-                <div className="relative" ref={dropdownRef}>
-                  <button
-                    onClick={() => setDropdownOpen(!dropdownOpen)}
-                    className="flex items-center gap-1 bg-secondary rounded text-sm text-foreground font-medium p-1.5 px-3"
-                    disabled={readOnly || isLoading}
-                  >
-                    {getLanguageLabel(language)}
-                    <ChevronDown className="w-4 h-4" />
-                  </button>
-
-                  {dropdownOpen && !readOnly && !isLoading && (
-                    <div className="absolute right-0 mt-1 w-40 bg-secondary border border-border/5 rounded z-20 max-h-[400px] shadow-md overflow-y-auto">
-                      <ul className="py-1">
-                        {languageOptions.map((option) => (
-                          <li key={option.value}>
-                            <button
-                              className={`w-full text-left px-4 py-2 text-sm hover:bg-background text-foreground ${
-                                getPrismLanguage(language) === option.value
-                                  ? "bg-primary/40"
-                                  : "bg-secondary/20"
-                              }`}
-                              onClick={() => {
-                                setLanguage(option.value);
-                                setDropdownOpen(false);
-                              }}
-                            >
-                              {option.label}
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-              </>
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto justify-start sm:justify-end">
+            {showAdvancedToggle && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex items-center mr-2">
+                    <Label
+                      htmlFor="advanced-mode"
+                      className="text-white cursor-pointer flex items-center mr-3 text-sm text-foreground font-medium"
+                    >
+                      <span className="inline text-[10px] uppercase tracking-wider font-bold text-white hover:text-primary transition-colors">
+                        advanced
+                      </span>
+                    </Label>
+                    <Switch
+                      id="advanced-mode"
+                      checked={advancedMode}
+                      onCheckedChange={onAdvancedModeChange}
+                      className="h-[21px]"
+                    />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent className="rounded-none border border-white/10 hover:border-primary/50 bg-black/20 backdrop-blur-sm text-white text-[10px] uppercase tracking-wider font-bold text-white/50 hover:text-primary transition-colors">
+                  <p>Enable advanced options when saving a paste</p>
+                </TooltipContent>
+              </Tooltip>
             )}
 
-            <PrismThemeToggle />
+            {showAdvancedToggle && advancedMode && (
+              <div className="flex items-center gap-2 sm:border-l  border-white/10 sm:pl-2">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-1">
+                      <Flame
+                        className={`h-3.5 w-3.5 ${burnAfterRead ? "text-orange-400" : "text-white/50"}`}
+                      />
+                      <Switch
+                        id="burn-after-read"
+                        checked={burnAfterRead}
+                        onCheckedChange={onBurnAfterReadChange}
+                        className="h-[21px]"
+                      />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent className="rounded-none border border-white/10 hover:border-primary/50 bg-black/20 backdrop-blur-sm text-white text-[10px] uppercase tracking-wider font-bold text-white/50 hover:text-primary transition-colors">
+                    <p>Burn after read</p>
+                  </TooltipContent>
+                </Tooltip>
 
-            <nav className="flex items-center gap-2">
+                <div className="flex items-center gap-2">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Clock
+                        className={`h-3.5 w-3.5 ${expiresInMinutes ? "text-blue-400" : "text-white/50"}`}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent className="rounded-none border border-white/10 hover:border-primary/50 bg-black/20 backdrop-blur-sm text-white text-[10px] uppercase tracking-wider font-bold text-white/50 hover:text-primary transition-colors">
+                      <p>Delete after</p>
+                    </TooltipContent>
+                  </Tooltip>
+                  <Select
+                    value={expiresInMinutes?.toString() || "never"}
+                    onValueChange={(value) =>
+                      onExpiresInMinutesChange(
+                        value === "never" ? null : parseInt(value),
+                      )
+                    }
+                  >
+                    <SelectTrigger className="h-[21px] w-[90px] text-[10px] uppercase tracking-wider font-bold bg-[#0A0A0A]/0 border-[#222222] rounded-none">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-[#0A0A0A] border-[#222222] rounded-none">
+                      {EXPIRATION_OPTIONS.map((option) => (
+                        <SelectItem
+                          key={option.value}
+                          value={option.value}
+                          className="text-[10px] uppercase tracking-wider font-bold"
+                        >
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            )}
+
+            {showLanguageSelector && (
+              <Select
+                value={language}
+                onValueChange={setLanguage}
+                disabled={readOnly || isLoading}
+              >
+                <SelectTrigger className="h-[21px] w-[120px] text-[10px] uppercase tracking-wider font-bold bg-[#0A0A0A]/0 border-[#222222] rounded-none mr-1">
+                  <SelectValue>{getLanguageLabel(language)}</SelectValue>
+                </SelectTrigger>
+                <SelectContent className="bg-[#0A0A0A] border-[#222222] rounded-none max-h-[400px]">
+                  {languageOptions.map((option) => (
+                    <SelectItem
+                      key={option.value}
+                      value={option.value}
+                      className="text-[10px] uppercase tracking-wider font-bold"
+                    >
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+
+            <nav className="flex items-center gap-1.5">
               {navItems.map((item) => (
                 <button
                   key={item.label}
@@ -166,14 +289,17 @@ const MainLayout = ({
                         ? "hover:text-primary text-primary-foreground"
                         : "hover:text-primary"
                     } ${item.className} ${
-                    item.disabled ? "opacity-50 cursor-not-allowed" : ""
-                  }`}
+                      item.disabled ? "opacity-50 cursor-not-allowed" : ""
+                    }`}
                 >
-                  {/* {item.icon} */}
-                  <span className="text-xs font-light text-foreground/75 bg-black/20 rounded-[3px] px-1 py-0.5 hidden md:inline -mr-2">
-                    {item.shortcut}
+                  {item.shortcut && (
+                    <span className="text-xs text-foreground/75 bg-[#0A0A0A]/0 border border-[#222222] px-1 py-[1.5px] font-mono hidden md:inline -mr-2">
+                      {item.shortcut}
+                    </span>
+                  )}
+                  <span className="inline px-[8px] py-2 text-[10px] uppercase tracking-wider font-bold hover:text-primary transition-colors">
+                    {item.label}
                   </span>
-                  <span className="inline px-2 py-2">{item.label}</span>
                 </button>
               ))}
             </nav>
@@ -182,6 +308,57 @@ const MainLayout = ({
       </header>
 
       <main className="flex-1 animate-fade-in">{children}</main>
+
+      <footer className="sticky bottom-0 z-50 border-t border-white/10 bg-[#0F0F0F]">
+        <div className="flex min-h-[30px] items-center px-2 py-1">
+          <SecurityInfo
+            open={securityOpen}
+            onOpenChange={setSecurityOpen}
+            trigger={
+              <button className="flex items-center gap-1.5 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-white/30 hover:text-primary transition-colors">
+                <ShieldCheck className="h-3.5 w-3.5" />
+                <span className="inline">Security Overview</span>
+              </button>
+            }
+          />
+
+          <Terms
+            open={termsOpen}
+            onOpenChange={setTermsOpen}
+            trigger={
+              <button className="flex items-center gap-1.5 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-white/30 hover:text-primary transition-colors">
+                <FileText className="h-3.5 w-3.5" />
+                <span className="inline">Terms of Service</span>
+              </button>
+            }
+          />
+
+          <Privacy
+            open={privacyOpen}
+            onOpenChange={setPrivacyOpen}
+            trigger={
+              <button className="flex items-center gap-1.5 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-white/30 hover:text-primary transition-colors">
+                <Eye className="h-3.5 w-3.5" />
+                <span className="inline">Privacy Policy</span>
+              </button>
+            }
+          />
+
+          {showByteCounter && (
+            <div className="items-center ml-auto gap-1.5 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-white/30 hidden sm:flex">
+              <span
+                className={
+                  isOverLimit ? "text-red-500 font-semibold" : "text-white/30"
+                }
+              >
+                {isOverLimit
+                  ? `${Math.abs((byteCount || 0) - (maxBytes || 0))} bytes over limit!`
+                  : `${byteCount || 0}/${maxBytes || 0} bytes`}
+              </span>
+            </div>
+          )}
+        </div>
+      </footer>
     </div>
   );
 };

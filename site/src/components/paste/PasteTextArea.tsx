@@ -4,7 +4,13 @@ import { getPrismLanguage } from "@/utils/language-utils";
 import { highlightWithPrism } from "@/utils/prism-utils";
 import { usePrismTheme } from "@/utils/prism-theme-utils";
 import { Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+
+export type ByteStats = {
+  lines: number;
+  bytes: number;
+  encryptedBytes: number;
+  remaining: number;
+};
 
 type PasteTextAreaProps = {
   text: string;
@@ -16,6 +22,7 @@ type PasteTextAreaProps = {
   autoFocus?: boolean;
   maxCharacters?: number;
   onLimitExceeded?: (isExceeded: boolean) => void;
+  onByteStatsChange?: (stats: ByteStats) => void;
 };
 
 /**
@@ -50,8 +57,9 @@ const PasteTextArea: React.FC<PasteTextAreaProps> = ({
   autoFocus = true,
   maxCharacters = 125000,
   onLimitExceeded,
+  onByteStatsChange,
 }) => {
-  const { background, textColor, currentTheme } = usePrismTheme();
+  const { background, textColor } = usePrismTheme();
   const editorRef = useRef<HTMLDivElement>(null);
   const [charStats, setCharStats] = useState({
     lines: 0,
@@ -60,12 +68,20 @@ const PasteTextArea: React.FC<PasteTextAreaProps> = ({
     remaining: maxCharacters,
   });
 
-  // Determine if we're using a light or dark theme
-  const isLightTheme = [
-    "prism-coy",
-    "prism-funky",
-    "prism-solarizedlight",
-  ].includes(currentTheme.value);
+  // Calculate if theme is light based on background luminance
+  const isLightTheme = (() => {
+    // Parse hex color to RGB
+    const hex = background.replace('#', '');
+    if (hex.length !== 6) return false;
+    
+    const r = parseInt(hex.substring(0, 2), 16);
+    const g = parseInt(hex.substring(2, 4), 16);
+    const b = parseInt(hex.substring(4, 6), 16);
+    
+    // Calculate relative luminance (sRGB)
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    return luminance > 0.5;
+  })();
 
   // Auto-focus the editor when the component mounts
   useEffect(() => {
@@ -92,7 +108,7 @@ const PasteTextArea: React.FC<PasteTextAreaProps> = ({
         elem.style.color = textColor;
       });
     }
-  }, [background, textColor, currentTheme]);
+  }, [background, textColor]);
 
   // Update character stats whenever text changes
   useEffect(() => {
@@ -128,11 +144,16 @@ const PasteTextArea: React.FC<PasteTextAreaProps> = ({
     const stats = calculateStats();
     setCharStats(stats);
 
+    // Notify parent component of byte stats
+    if (onByteStatsChange) {
+      onByteStatsChange(stats);
+    }
+
     // Notify parent component if limit is exceeded
     if (onLimitExceeded) {
       onLimitExceeded(stats.remaining < 0);
     }
-  }, [text, maxCharacters, onLimitExceeded]);
+  }, [text, maxCharacters, onLimitExceeded, onByteStatsChange]);
 
   const highlightCode = useCallback(
     (code: string) => {
@@ -161,12 +182,12 @@ const PasteTextArea: React.FC<PasteTextAreaProps> = ({
 
     // Calculate appropriate colors for line numbers
     const lineNumberColor = isLightTheme
-      ? `rgba(0, 0, 0, 0.4)` // Dark color with opacity for light themes
+      ? `rgba(0, 0, 0, 0.1)` // Dark color with opacity for light themes
       : `rgba(255, 255, 255, 0.4)`; // Light color with opacity for dark themes
 
     const lineNumberBgColor = isLightTheme
       ? `rgba(0, 0, 0, 0.05)` // Dark bg with opacity for light themes
-      : `rgba(255, 255, 255, 0.05)`; // Light bg with opacity for dark themes
+      : `rgba(255, 255, 255, 0.02)`; // Light bg with opacity for dark themes
 
     return (
       <div
@@ -219,36 +240,9 @@ const PasteTextArea: React.FC<PasteTextAreaProps> = ({
             minHeight: "calc(100vh - 2.2rem)",
             marginLeft: showLineNumbers ? "3.5rem" : "0",
           }}
-          textareaClassName="outline-none relative z-[2]"
-          placeholder={`paste away! your pastes are securely encrypted by your browser before they're saved,\nensuring rustybin can't read them. plus, they last forever.`}
+          textareaClassName="outline-none relative z-[2] text-white/50"
+          placeholder={`Paste away! Your pastes are securely encrypted by your browser before they're saved to our server.\nRustybin uses a zero-knowledge architecture: we only store encrypted data, while the decryption key stays in the URL fragment (#) and is never sent to us.`}
         />
-
-        {/* Character counter */}
-        <div className="fixed bottom-2 right-3 text-xs font-mono z-10 select-none flex flex-col gap-1 bg-background/80 px-2 py-1 rounded-md">
-          <div className="flex items-center gap-2">
-            <span className="text-muted-foreground">
-              Lines: {charStats.lines}
-            </span>
-            <span className="mx-1">|</span>
-            <span className="text-muted-foreground">
-              Raw: {charStats.bytes} bytes
-            </span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span
-              className={cn(
-                "transition-colors",
-                isOverLimit
-                  ? "text-red-500 font-semibold"
-                  : "text-muted-foreground"
-              )}
-            >
-              {isOverLimit
-                ? `${Math.abs(charStats.remaining)} bytes over limit!`
-                : `Encrypted: ${charStats.encryptedBytes}/${maxCharacters} bytes`}
-            </span>
-          </div>
-        </div>
       </div>
     </div>
   );

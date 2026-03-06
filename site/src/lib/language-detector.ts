@@ -115,18 +115,6 @@ export function getLanguageSuggestions(
     const languages = Object.keys(languageMapping);
     const result = hljs.highlightAuto(code, languages);
 
-    // Log detected languages for debugging
-    console.log(
-      "Detected languages:",
-      result.language,
-      result.secondBest?.language
-    );
-    console.log(
-      "Relevance scores:",
-      result.relevance,
-      result.secondBest?.relevance
-    );
-
     // Create a list to store all detected languages with their relevance
     const suggestions: LanguageSuggestion[] = [];
 
@@ -208,9 +196,6 @@ export function getLanguageSuggestions(
     const sortedSuggestions = suggestions
       .sort((a, b) => b.relevance - a.relevance)
       .slice(0, maxSuggestions);
-
-    // Log the final suggestions
-    console.log("Language suggestions:", sortedSuggestions);
 
     return sortedSuggestions;
   } catch (error) {

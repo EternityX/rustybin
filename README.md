@@ -4,12 +4,20 @@ A modern, secure pastebin service built with Rust and React. RustyBin allows you
 
 ## Features
 
-- **Secure Text Sharing**: Create and share encrypted text snippets
-- **Syntax Highlighting**: Support for multiple programming languages using Prism
-- **Modern UI**: Built with React and TypeScript
-- **RESTful API**: API for creating, retrieving, and deleting pastes
-- **SQLite Database**: Lightweight, file-based database for storing pastes
-- **End-to-End Encryption**: Client-side encryption for sensitive data, server has no knowledge of the paste contents
+### Core
+- **End-to-End Encryption**: Client-side AES-GCM encryption - the server never sees your paste contents
+- **Zero-Knowledge Architecture**: Decryption keys stay in the URL fragment (#) and are never sent to the server
+- **Syntax Highlighting**: Support for 30+ programming languages using Prism
+- **Auto Language Detection**: Automatically detects the programming language as you type
+- **RESTful API**: Full API for creating, retrieving, updating, and deleting pastes
+- **SQLite Database**: Lightweight, file-based database for storing encrypted pastes
+- **Modern Design**: Clean, dark-themed UI built with React, TypeScript, and Tailwind CSS
+
+### Advanced Mode
+Enable advanced options when creating a paste:
+- **Burn After Read**: Paste is automatically deleted after being viewed once
+- **Expiration**: Set pastes to auto-delete after a specified time (5 min to 1 week)
+- **Edit Keys**: Get a separate editable URL to make changes while sharing a read-only link
 
 ## Getting Started
 
@@ -53,6 +61,7 @@ The backend can be configured using the following environment variables:
 | `CORS_ALLOWED_ORIGINS` | Comma-separated list of allowed CORS origins    | `https://rustybin.net,http://localhost:8080,https://api.rustybin.net` |
 | `READ_RATE_LIMIT`      | Read operations per minute per IP               | `45`                                                                  |
 | `CREATE_RATE_LIMIT`    | Create operations per minute per IP             | `15`                                                                  |
+| `UPDATE_RATE_LIMIT`    | Update operations per minute per IP             | `15`                                                                  |
 | `DELETE_RATE_LIMIT`    | Delete operations per minute per IP             | `15`                                                                  |
 | `RUST_LOG`             | Logging level (error, warn, info, debug, trace) | `info`                                                                |
 
@@ -61,9 +70,10 @@ The backend can be configured using the following environment variables:
 ```env
 PORT=3000
 RUST_ENV=development
-CORS_ALLOWED_ORIGINS=https://yourdomain.com,http://localhost:5173,http://localhost:8080
+CORS_ALLOWED_ORIGINS=https://yourdomain.com,http://localhost:3000
 READ_RATE_LIMIT=45
 CREATE_RATE_LIMIT=15
+UPDATE_RATE_LIMIT=15
 DELETE_RATE_LIMIT=15
 RUST_LOG=info
 ```
@@ -96,7 +106,7 @@ To allow your frontend to connect to the backend, make sure to include your fron
    # VITE_API_URL=https://yourdomain.com/v1
    ```
 
-   **Note**: Make sure the port in `VITE_API_URL` matches the port your Rust backend is running on (configured in the backend's `.env` file).
+   **Note**: Make sure the port in `VITE_API_URL` matches the port your Rust backend is running on (configured in the backend's `.env` file) and the port has been changed in `vite.config.ts`.
 
 3. Install dependencies:
 
@@ -109,13 +119,44 @@ To allow your frontend to connect to the backend, make sure to include your fron
    pnpm dev
    ```
 
-The frontend development server will start on http://localhost:5173.
+The frontend development server will start on http://localhost:3000.
 
 ## API Endpoints
 
-- `POST /api/pastes` - Create a new paste
-- `GET /api/pastes/:id` - Get a specific paste
-- `DELETE /api/pastes/:id` - Delete a paste
+All endpoints are prefixed with `/v1`.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/v1/health` | Health check |
+| `POST` | `/v1/pastes` | Create a new paste |
+| `GET` | `/v1/pastes/:id` | Get a specific paste |
+| `PUT` | `/v1/pastes/:id` | Update a paste (requires edit key) |
+| `DELETE` | `/v1/pastes/:id` | Delete a paste (requires edit key) |
+
+### Request/Response Details
+
+**Create Paste (`POST /v1/pastes`)**
+```json
+{
+  "data": "encrypted_content",
+  "language": "javascript",
+  "burn_after_read": false,
+  "expires_in_minutes": null
+}
+```
+
+> **Note**: The `data` field must contain **AES-256-GCM encrypted content**, not plaintext. 
+> The encryption happens client-side, and the server never sees your unencrypted data.
+> 
+> **See [API_ENCRYPTION.md](API_ENCRYPTION.md)** for detailed encryption instructions and working examples in Python and JavaScript.
+
+**Update/Delete** requires an `edit_key` in the request body for authorization.
+
+### Rate Limiting
+
+All endpoints include rate limit headers:
+- `x-ratelimit-remaining`: Requests remaining in the current window
+- `x-ratelimit-reset`: Seconds until the rate limit resets
 
 ## Deployment
 
@@ -138,9 +179,9 @@ pnpm build
 
 The built files will be in the `site/dist` directory, which can be served by the Rust backend.
 
-## CloudFlare
+## Cloudflare
 
-Please see the `site/DEPLOYMENT.md` to deploy on CloudFlare pages.
+Please see the `site/DEPLOYMENT.md` to deploy on Cloudflare pages.
 
 ## License
 

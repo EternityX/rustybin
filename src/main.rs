@@ -5,10 +5,12 @@ use axum::{
     http::{Method, Request, StatusCode, HeaderMap, HeaderValue},
     middleware::{self, Next},
     response::{IntoResponse, Response},
-    routing::{delete, get, post},
+    routing::{delete, get, post, put},
     Json, Router,
+    extract::Query,
 };
-use db::{CreatePasteData, Database};
+use serde::Deserialize;
+use db::{CreatePasteData, UpdatePasteData, DeletePasteData, Database, DbError};
 use std::env;
 use std::net::SocketAddr;
 use std::sync::Arc;
@@ -28,10 +30,13 @@ struct AppRateLimiter {
     create_limiter: Arc<Mutex<HashMap<IpAddr, u32>>>,
     // Rate limiter for DELETE requests (most restrictive)
     delete_limiter: Arc<Mutex<HashMap<IpAddr, u32>>>,
+    // Rate limiter for PUT requests (same as create)
+    update_limiter: Arc<Mutex<HashMap<IpAddr, u32>>>,
     // Limits
     read_limit: u32,
     create_limit: u32,
     delete_limit: u32,
+    update_limit: u32,
     // Last reset time
     last_reset: Arc<Mutex<Instant>>,
     // Reset interval (1 minute)
@@ -39,14 +44,16 @@ struct AppRateLimiter {
 }
 
 impl AppRateLimiter {
-    fn new(read_limit: u32, create_limit: u32, delete_limit: u32) -> Self {
+    fn new(read_limit: u32, create_limit: u32, delete_limit: u32, update_limit: u32) -> Self {
         Self {
             read_limiter: Arc::new(Mutex::new(HashMap::new())),
             create_limiter: Arc::new(Mutex::new(HashMap::new())),
             delete_limiter: Arc::new(Mutex::new(HashMap::new())),
+            update_limiter: Arc::new(Mutex::new(HashMap::new())),
             read_limit,
             create_limit,
             delete_limit,
+            update_limit,
             last_reset: Arc::new(Mutex::new(Instant::now())),
             reset_interval: Duration::from_secs(60),
         }
@@ -61,6 +68,7 @@ impl AppRateLimiter {
             self.read_limiter.lock().unwrap().clear();
             self.create_limiter.lock().unwrap().clear();
             self.delete_limiter.lock().unwrap().clear();
+            self.update_limiter.lock().unwrap().clear();
             *last_reset = now;
         }
         
@@ -69,6 +77,7 @@ impl AppRateLimiter {
             &Method::GET => (&self.read_limiter, self.read_limit),
             &Method::POST => (&self.create_limiter, self.create_limit),
             &Method::DELETE => (&self.delete_limiter, self.delete_limit),
+            &Method::PUT => (&self.update_limiter, self.update_limit),
             _ => (&self.read_limiter, self.read_limit), // Default to read limiter for other methods
         };
         
@@ -231,20 +240,26 @@ async fn main() {
         .unwrap_or_else(|_| "15".to_string())
         .parse::<u32>()
         .unwrap_or(15);
+        
+    let update_limit = env::var("UPDATE_RATE_LIMIT")
+        .unwrap_or_else(|_| "15".to_string())
+        .parse::<u32>()
+        .unwrap_or(15);
 
     // Create rate limiter
     let rate_limiter = Arc::new(AppRateLimiter::new(
         read_limit,
         create_limit,
-        delete_limit
+        delete_limit,
+        update_limit
     ));
 
     // Build our application with routes
     let app = Router::new()
         .route("/v1/health", get(health_check))
-        .route("/v1/pastes", get(list_pastes))
         .route("/v1/pastes", post(create_paste))
         .route("/v1/pastes/{id}", get(get_paste))
+        .route("/v1/pastes/{id}", put(update_paste))
         .route("/v1/pastes/{id}", delete(delete_paste))
         .with_state(db.clone())
         .layer(cors)
@@ -274,6 +289,7 @@ async fn main() {
     tracing::info!("Rate limiting enabled per IP:");
     tracing::info!("  - Read operations: {} per minute", read_limit);
     tracing::info!("  - Create operations: {} per minute", create_limit);
+    tracing::info!("  - Update operations: {} per minute", update_limit);
     tracing::info!("  - Delete operations: {} per minute", delete_limit);
 
     // Start the server
@@ -293,31 +309,95 @@ async fn create_paste(
     }
 
     // Create the paste
-    match std::panic::catch_unwind(|| db.create_paste(payload)) {
-        Ok(result) => match result {
-            Ok(paste) => (StatusCode::CREATED, Json(paste)).into_response(),
-            Err(err) => {
-                let error_msg = format!("Database error: {}", err);
-                (StatusCode::INTERNAL_SERVER_ERROR, Json(json_error(&error_msg))).into_response()
-            }
-        },
-        Err(_) => (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            Json(json_error("Failed to create paste")),
-        )
-            .into_response(),
+    match db.create_paste(payload) {
+        Ok(paste) => (StatusCode::CREATED, Json(paste)).into_response(),
+        Err(err) => {
+            let (status, message) = match &err {
+                DbError::CharacterLimitExceeded(actual, max) => {
+                    (StatusCode::BAD_REQUEST, format!("Content too large: {} bytes (maximum: {} bytes)", actual, max))
+                }
+                DbError::ClientEncryptionRequired => {
+                    (StatusCode::BAD_REQUEST, "Data is required".to_string())
+                }
+                DbError::IdGenerationFailed => {
+                    tracing::error!("Failed to generate unique ID after maximum retries");
+                    (StatusCode::INTERNAL_SERVER_ERROR, "Server error: please try again".to_string())
+                }
+                _ => {
+                    tracing::error!("Database error: {}", err);
+                    (StatusCode::INTERNAL_SERVER_ERROR, "Failed to create paste".to_string())
+                }
+            };
+            (status, Json(json_error(&message))).into_response()
+        }
     }
 }
 
 // Handler for getting a paste by ID
 async fn get_paste(State(db): State<Arc<Database>>, Path(id): Path<String>) -> impl IntoResponse {
+    // Validate ID format (alphanumeric, 6-16 chars)
+    if id.len() < 6 || id.len() > 16 || !id.chars().all(|c| c.is_alphanumeric()) {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(json_error("Invalid paste ID format")),
+        ).into_response();
+    }
+    
     match db.get_paste(&id) {
         Some(paste) => (StatusCode::OK, Json(paste)).into_response(),
         None => (
             StatusCode::NOT_FOUND,
             Json(json_error("Paste not found")),
-        )
-            .into_response(),
+        ).into_response(),
+    }
+}
+
+// Handler for updating a paste
+async fn update_paste(
+    State(db): State<Arc<Database>>,
+    Path(id): Path<String>,
+    Json(payload): Json<UpdatePasteData>,
+) -> impl IntoResponse {
+    // Validate ID format
+    if id.len() < 6 || id.len() > 16 || !id.chars().all(|c| c.is_alphanumeric()) {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(json_error("Invalid paste ID format")),
+        ).into_response();
+    }
+    
+    // Validate request
+    if payload.data.is_empty() {
+        return (StatusCode::BAD_REQUEST, Json(json_error("Data is required"))).into_response();
+    }
+    
+    if payload.edit_key.is_empty() {
+        return (StatusCode::BAD_REQUEST, Json(json_error("Edit key is required"))).into_response();
+    }
+
+    match db.update_paste(&id, payload) {
+        Ok(paste) => (StatusCode::OK, Json(paste)).into_response(),
+        Err(err) => {
+            let (status, message) = match &err {
+                DbError::PasteNotFound => {
+                    (StatusCode::NOT_FOUND, "Paste not found".to_string())
+                }
+                DbError::InvalidEditKey => {
+                    (StatusCode::FORBIDDEN, "Invalid edit key".to_string())
+                }
+                DbError::CharacterLimitExceeded(actual, max) => {
+                    (StatusCode::BAD_REQUEST, format!("Content too large: {} bytes (maximum: {} bytes)", actual, max))
+                }
+                DbError::ClientEncryptionRequired => {
+                    (StatusCode::BAD_REQUEST, "Data is required".to_string())
+                }
+                _ => {
+                    tracing::error!("Database error during update: {}", err);
+                    (StatusCode::INTERNAL_SERVER_ERROR, "Failed to update paste".to_string())
+                }
+            };
+            (status, Json(json_error(&message))).into_response()
+        }
     }
 }
 
@@ -325,14 +405,41 @@ async fn get_paste(State(db): State<Arc<Database>>, Path(id): Path<String>) -> i
 async fn delete_paste(
     State(db): State<Arc<Database>>,
     Path(id): Path<String>,
+    Json(payload): Json<DeletePasteData>,
 ) -> impl IntoResponse {
-    match db.delete_paste(&id) {
-        true => StatusCode::NO_CONTENT.into_response(),
-        false => (
-            StatusCode::NOT_FOUND,
-            Json(json_error("Paste not found")),
-        )
-            .into_response(),
+    // Validate ID format
+    if id.len() < 6 || id.len() > 16 || !id.chars().all(|c| c.is_alphanumeric()) {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(json_error("Invalid paste ID format")),
+        ).into_response();
+    }
+    
+    // Validate edit key is present
+    if payload.edit_key.is_empty() {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(json_error("Edit key is required")),
+        ).into_response();
+    }
+    
+    match db.delete_paste_with_key(&id, payload) {
+        Ok(()) => StatusCode::NO_CONTENT.into_response(),
+        Err(err) => {
+            let (status, message) = match &err {
+                DbError::PasteNotFound => {
+                    (StatusCode::NOT_FOUND, "Paste not found".to_string())
+                }
+                DbError::InvalidEditKey => {
+                    (StatusCode::FORBIDDEN, "Invalid edit key".to_string())
+                }
+                _ => {
+                    tracing::error!("Database error during delete: {}", err);
+                    (StatusCode::INTERNAL_SERVER_ERROR, "Failed to delete paste".to_string())
+                }
+            };
+            (status, Json(json_error(&message))).into_response()
+        }
     }
 }
 
@@ -341,10 +448,6 @@ async fn health_check() -> impl IntoResponse {
     Json(serde_json::json!({ "status": "ok" }))
 }
 
-// Handler for listing pastes (can be empty for now)
-async fn list_pastes() -> impl IntoResponse {
-    Json(serde_json::json!({ "pastes": [] }))
-}
 
 // Fallback handler for SPA in production
 async fn serve_spa() -> impl IntoResponse {

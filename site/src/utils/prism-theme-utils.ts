@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { z } from "zod";
 
 // List of available Prism themes with their associated background colors
 // Extended with themes from https://github.com/PrismJS/prism-themes
@@ -190,19 +191,25 @@ export const prismThemes = [
   },
 ] as const;
 
-export type PrismTheme = (typeof prismThemes)[number]["value"];
+/** Zod schema for validating Prism theme values */
+const prismThemeValues = prismThemes.map((t) => t.value) as [string, ...string[]];
+const PrismThemeSchema = z.enum(prismThemeValues);
+
+export type PrismTheme = z.infer<typeof PrismThemeSchema>;
 
 // Local storage key for the theme
 const STORAGE_KEY = "rustybin-prism-theme";
 
-// Get the theme from localStorage or use default
+/**
+ * Get the Prism theme from localStorage or use default
+ * Uses zod for safe parsing of stored value
+ */
 export function getStoredPrismTheme(): PrismTheme {
   if (typeof window === "undefined") return "prism-tomorrow";
 
-  const storedTheme = window.localStorage.getItem(
-    STORAGE_KEY
-  ) as PrismTheme | null;
-  return storedTheme || "prism-tomorrow";
+  const storedTheme = window.localStorage.getItem(STORAGE_KEY);
+  const parsed = PrismThemeSchema.safeParse(storedTheme);
+  return parsed.success ? parsed.data : "prism-tomorrow";
 }
 
 // Save theme to localStorage
