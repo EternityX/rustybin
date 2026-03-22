@@ -19,6 +19,7 @@ Enable advanced options when creating a paste:
 - **Burn After Read**: Paste is automatically deleted after being viewed once
 - **Expiration**: Set pastes to auto-delete after a specified time (5 min to 1 week)
 - **Edit Keys**: Get a separate editable URL to make changes while sharing a read-only link
+- **Quantum-resistant**: Protect your pastes from potential future quantum computing attacks
 
 ## Getting Started
 
@@ -77,6 +78,7 @@ CREATE_RATE_LIMIT=15
 UPDATE_RATE_LIMIT=15
 DELETE_RATE_LIMIT=15
 RUST_LOG=info
+ADMIN_SECRET=your_secret
 ```
 
 **CORS Configuration:**
@@ -101,7 +103,7 @@ To allow your frontend to connect to the backend, make sure to include your fron
 
    ```env
    # For development - update the port to match your backend configuration
-   VITE_API_URL=http://127.0.0.1:3000/v1
+   VITE_API_URL=http://localhost:3000/v1
 
    # For production
    # VITE_API_URL=https://yourdomain.com/v1
