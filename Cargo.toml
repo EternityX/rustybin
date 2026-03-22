@@ -24,3 +24,4 @@ sha2 = "0.10.8"
 thiserror = "1.0.57"
 governor = "0.6.0"
 sysinfo = "0.32"
+jsonwebtoken = { version = "10", features = ["rust_crypto"] }

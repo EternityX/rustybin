@@ -4,9 +4,12 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useEffect, lazy, Suspense } from "react";
 import { Loader2 } from "lucide-react";
+import { AdminAuthGuard } from "@/components/admin/AdminAuthGuard";
 
 const Index = lazy(() => import("./pages/Index"));
 const Workspace = lazy(() => import("./pages/Workspace"));
+const AdminLogin = lazy(() => import("./pages/AdminLogin"));
+const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
 
 const queryClient = new QueryClient();
 
@@ -36,6 +39,8 @@ const App = () => {
               <Route path="/:id" element={<Index />} />
               <Route path="/w/new" element={<Workspace />} />
               <Route path="/w/:id" element={<Workspace />} />
+              <Route path="/admin" element={<AdminAuthGuard><AdminDashboard /></AdminAuthGuard>} />
+              <Route path="/admin/login" element={<AdminLogin />} />
             </Routes>
           </Suspense>
         </BrowserRouter>

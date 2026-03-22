@@ -1,3 +1,4 @@
+mod auth;
 mod db;
 mod error;
 mod handlers;
@@ -24,7 +25,12 @@ use tower_http::cors::CorsLayer;
 use tower_http::services::ServeDir;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
+use auth::require_admin_auth;
 use error::json_error;
+use handlers::admin::{
+    admin_bulk_delete, admin_delete_paste, admin_list_pastes, admin_login, admin_logout,
+    admin_stats,
+};
 use handlers::paste::{create_paste, delete_paste, get_paste, update_paste};
 use handlers::workspace::{create_workspace, delete_workspace, get_workspace, update_workspace};
 use health::HealthChecker;
@@ -218,7 +224,7 @@ async fn main() {
 
     // Get allowed origins from environment variable or use defaults
     let allowed_origins_str = env::var("CORS_ALLOWED_ORIGINS")
-        .unwrap_or_else(|_| "https://rustybin.net,https://rustyb.in,http://localhost:8080,https://api.rustybin.net,https://api.rustyb.in".to_string());
+        .unwrap_or_else(|_| "https://rustybin.net,https://rustyb.in,http://localhost:8080,http://localhost:5173,https://api.rustybin.net,https://api.rustyb.in".to_string());
 
     let allowed_origins: Vec<axum::http::HeaderValue> = allowed_origins_str
         .split(',')
@@ -320,8 +326,92 @@ async fn main() {
                 req.extensions_mut().insert(hc);
                 rate_limit(req, next).await
             },
-        ))
-        .layer(cors);
+        ));
+
+    // Admin rate limiter (separate from public API per FR-015)
+    let admin_login_limit = env::var("ADMIN_LOGIN_RATE_LIMIT")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(5u32);
+    let admin_read_limit = env::var("ADMIN_READ_RATE_LIMIT")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(60u32);
+    let admin_delete_limit = env::var("ADMIN_DELETE_RATE_LIMIT")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(20u32);
+    let admin_rate_limiter = Arc::new(AppRateLimiter::new(
+        admin_read_limit,
+        admin_login_limit,
+        admin_delete_limit,
+        admin_read_limit,
+    ));
+
+    // Conditionally register admin routes when ADMIN_SECRET is set
+    let app = if env::var("ADMIN_SECRET").is_ok() {
+        tracing::info!("Admin dashboard enabled at /v1/admin");
+        tracing::info!("Admin rate limits: login={}/min, read={}/min, delete={}/min",
+            admin_login_limit, admin_read_limit, admin_delete_limit);
+
+        let admin_rl = admin_rate_limiter.clone();
+
+        // Protected admin routes (require auth)
+        let admin_protected = Router::new()
+            .route("/v1/admin/stats", get(admin_stats))
+            .route(
+                "/v1/admin/pastes",
+                get(admin_list_pastes).delete(admin_bulk_delete),
+            )
+            .route("/v1/admin/pastes/{id}", delete(admin_delete_paste))
+            .route("/v1/admin/logout", post(admin_logout))
+            .layer(middleware::from_fn(require_admin_auth))
+            .with_state(db.clone());
+
+        // Public admin routes (login - rate limited separately)
+        let admin_rl_login = admin_rl.clone();
+        let admin_public = Router::new()
+            .route("/v1/admin/login", post(admin_login))
+            .layer(middleware::from_fn(move |req: Request<axum::body::Body>, next: Next| {
+                let limiter = admin_rl_login.clone();
+                async move {
+                    let ip = req
+                        .extensions()
+                        .get::<axum::extract::ConnectInfo<SocketAddr>>()
+                        .map(|ci| ci.0.ip())
+                        .unwrap_or_else(|| "0.0.0.0".parse().unwrap());
+
+                    match limiter.check_and_update(&ip, &Method::POST) {
+                        Ok(remaining) => {
+                            let mut response = next.run(req).await;
+                            let reset = limiter.get_reset_time();
+                            add_rate_limit_headers(response.headers_mut(), remaining, reset);
+                            Ok::<Response, StatusCode>(response)
+                        }
+                        Err(reset_after) => {
+                            let msg = format!(
+                                "Too many login attempts. Try again in {} seconds",
+                                reset_after
+                            );
+                            let mut response = (
+                                StatusCode::TOO_MANY_REQUESTS,
+                                Json(json_error(&msg)),
+                            ).into_response();
+                            add_rate_limit_headers(response.headers_mut(), 0, reset_after);
+                            Ok(response)
+                        }
+                    }
+                }
+            }));
+
+        app.merge(admin_protected).merge(admin_public)
+    } else {
+        tracing::warn!("ADMIN_SECRET not set, admin dashboard is disabled");
+        app
+    };
+
+    // Apply CORS after merging all routes so it covers admin endpoints too
+    let app = app.layer(cors);
 
     // Add static file serving for production
     let app = if env::var("RUST_ENV").unwrap_or_default() == "production" {

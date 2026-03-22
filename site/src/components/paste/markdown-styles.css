@@ -334,7 +334,7 @@
   padding: 0 2px;
 }
 
-/* Emoji — slightly larger for readability */
+/* Emoji - slightly larger for readability */
 .markdown-body .emoji {
   font-size: 1.2em;
   vertical-align: -0.1em;
@@ -383,7 +383,7 @@
   text-decoration: underline;
 }
 
-/* Heading anchors — subtle link on hover */
+/* Heading anchors - subtle link on hover */
 .markdown-body h1[id],
 .markdown-body h2[id],
 .markdown-body h3[id],
@@ -465,12 +465,12 @@
   margin-top: 0.5em;
 }
 
-/* First element — no top margin */
+/* First element - no top margin */
 .markdown-body > *:first-child {
   margin-top: 0;
 }
 
-/* Last element — no bottom margin */
+/* Last element - no bottom margin */
 .markdown-body > *:last-child {
   margin-bottom: 0;
 }

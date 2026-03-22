@@ -22,6 +22,8 @@ pub struct Paste {
     pub edit_key: Option<String>, // Only returned on creation, never stored in plain text
     #[serde(skip_serializing_if = "Option::is_none")]
     pub edit_key_hash: Option<String>, // Only returned for admin listing
+    #[serde(skip_serializing_if = "Option::is_none", default)]
+    pub paste_type: Option<String>, // "paste" or "workspace", populated in admin queries
 }
 
 // Data structure for creating a new paste
@@ -284,6 +286,7 @@ impl Database {
             expires_at: expires_at.map(|ts| DateTime::from_timestamp(ts, 0).unwrap_or_else(|| Utc::now())),
             edit_key: None, // Will be set by caller
             edit_key_hash: None,
+            paste_type: None,
         })
     }
 
@@ -416,6 +419,7 @@ impl Database {
             expires_at: expires_at.map(|ts| DateTime::from_timestamp(ts, 0).unwrap_or_else(|| Utc::now())),
             edit_key: None, // Never return edit key on get
             edit_key_hash: None,
+            paste_type: None,
         })
     }
     
@@ -475,6 +479,7 @@ impl Database {
             expires_at,
             edit_key: None,
             edit_key_hash: None,
+            paste_type: None,
         })
     }
 
@@ -535,103 +540,132 @@ impl Database {
         Ok(())
     }
 
-    pub fn get_dashboard_stats(&self, range: &str) -> Result<DashboardStats, DbError> {
+    /// Retrieve dashboard statistics, optionally filtered by time range.
+    ///
+    /// Supports preset ranges (24h, 7d, 30d, 1y, all) and custom ranges
+    /// with explicit start/end timestamps. All summary cards filter to
+    /// the selected range.
+    pub fn get_dashboard_stats(
+        &self,
+        range: &str,
+        custom_start: Option<i64>,
+        custom_end: Option<i64>,
+    ) -> Result<DashboardStats, DbError> {
         let conn = self.connection.lock().unwrap();
-        
+
+        // Build the time filter WHERE clause for summary cards
+        let time_filter = match range {
+            "24h" => "WHERE created_at >= CAST(strftime('%s', 'now', '-24 hours') AS INTEGER)".to_string(),
+            "7d" => "WHERE created_at >= CAST(strftime('%s', 'now', '-7 days') AS INTEGER)".to_string(),
+            "30d" => "WHERE created_at >= CAST(strftime('%s', 'now', '-30 days') AS INTEGER)".to_string(),
+            "1y" => "WHERE created_at >= CAST(strftime('%s', 'now', '-1 year') AS INTEGER)".to_string(),
+            "custom" => {
+                let s = custom_start.unwrap_or(0);
+                let e = custom_end.unwrap_or(i64::MAX);
+                format!("WHERE created_at >= {} AND created_at <= {}", s, e)
+            }
+            "all" => String::new(),
+            _ => "WHERE created_at >= CAST(strftime('%s', 'now', '-7 days') AS INTEGER)".to_string(),
+        };
+
         let total_pastes: i64 = conn
-            .prepare("SELECT COUNT(*) FROM pastes")?
+            .prepare(&format!("SELECT COUNT(*) FROM pastes {}", time_filter))?
             .into_iter()
             .map(|row| row.unwrap().read::<i64, _>(0))
             .next()
             .unwrap();
 
         let pending_expiration: i64 = conn
-            .prepare("SELECT COUNT(*) FROM pastes WHERE expires_at IS NOT NULL")?
-            .into_iter()
-            .map(|row| row.unwrap().read::<i64, _>(0))
-            .next()
-            .unwrap();
-            
-        let unread_pastes: i64 = conn
-            .prepare("SELECT COUNT(*) FROM pastes WHERE burn_after_read = 1")?
+            .prepare(&format!(
+                "SELECT COUNT(*) FROM pastes {} {} expires_at IS NOT NULL",
+                time_filter,
+                if time_filter.is_empty() { "WHERE" } else { "AND" }
+            ))?
             .into_iter()
             .map(|row| row.unwrap().read::<i64, _>(0))
             .next()
             .unwrap();
 
-        // Calculate total size (sum of data length)
-        let total_size: i64 = conn
-            .prepare("SELECT SUM(LENGTH(data)) FROM pastes")?
+        let unread_pastes: i64 = conn
+            .prepare(&format!(
+                "SELECT COUNT(*) FROM pastes {} {} burn_after_read = 1",
+                time_filter,
+                if time_filter.is_empty() { "WHERE" } else { "AND" }
+            ))?
             .into_iter()
-            .map(|row| row.unwrap().read::<Option<i64>, _>(0).unwrap_or(0))
+            .map(|row| row.unwrap().read::<i64, _>(0))
+            .next()
+            .unwrap();
+
+        let total_size: i64 = conn
+            .prepare(&format!(
+                "SELECT COALESCE(SUM(LENGTH(data)), 0) FROM pastes {}",
+                time_filter
+            ))?
+            .into_iter()
+            .map(|row| row.unwrap().read::<i64, _>(0))
             .next()
             .unwrap_or(0);
 
-        // Calculate language distribution
         let mut language_stats = std::collections::HashMap::new();
-        let mut stmt = conn.prepare("SELECT language, COUNT(*) FROM pastes GROUP BY language")?;
-        for row in stmt.into_iter() {
+        let lang_stmt = conn.prepare(&format!(
+            "SELECT language, COUNT(*) FROM pastes {} GROUP BY language",
+            time_filter
+        ))?;
+        for row in lang_stmt.into_iter() {
             let row = row?;
             let language = row.read::<&str, _>(0).to_string();
             let count = row.read::<i64, _>(1);
             language_stats.insert(language, count);
         }
 
-        // Calculate pastes over time based on range
+        // Time-series query
         let mut pastes_over_time = Vec::new();
-        
-        let (query, date_format) = match range {
-            "24h" => (
-                "SELECT strftime('%Y-%m-%d %H:00', datetime(created_at, 'unixepoch')) as date, COUNT(*) as count 
-                 FROM pastes 
-                 WHERE created_at >= CAST(strftime('%s', 'now', '-24 hours') AS INTEGER)
-                 GROUP BY date 
-                 ORDER BY date ASC",
-                "%Y-%m-%d %H:00"
+
+        let time_query = match range {
+            "24h" => format!(
+                "SELECT strftime('%Y-%m-%d %H:00', datetime(created_at, 'unixepoch')) as date, COUNT(*) as count \
+                 FROM pastes {} GROUP BY date ORDER BY date ASC",
+                time_filter
             ),
-            "7d" => (
-                "SELECT date(datetime(created_at, 'unixepoch')) as date, COUNT(*) as count 
-                 FROM pastes 
-                 WHERE created_at >= CAST(strftime('%s', 'now', '-7 days') AS INTEGER)
-                 GROUP BY date 
-                 ORDER BY date ASC",
-                "%Y-%m-%d"
+            "7d" | "30d" => format!(
+                "SELECT date(datetime(created_at, 'unixepoch')) as date, COUNT(*) as count \
+                 FROM pastes {} GROUP BY date ORDER BY date ASC",
+                time_filter
             ),
-            "30d" => (
-                "SELECT date(datetime(created_at, 'unixepoch')) as date, COUNT(*) as count 
-                 FROM pastes 
-                 WHERE created_at >= CAST(strftime('%s', 'now', '-30 days') AS INTEGER)
-                 GROUP BY date 
-                 ORDER BY date ASC",
-                "%Y-%m-%d"
-            ),
-            "1y" => (
-                "SELECT strftime('%Y-%m', datetime(created_at, 'unixepoch')) as date, COUNT(*) as count 
-                 FROM pastes 
-                 WHERE created_at >= CAST(strftime('%s', 'now', '-1 year') AS INTEGER)
-                 GROUP BY date 
-                 ORDER BY date ASC",
-                "%Y-%m"
-            ),
-            "all" => (
-                 "SELECT strftime('%Y-%m', datetime(created_at, 'unixepoch')) as date, COUNT(*) as count 
-                 FROM pastes 
-                 GROUP BY date 
-                 ORDER BY date ASC",
-                "%Y-%m"
-            ),
-            _ => ( // Default to 7d if unknown
-                "SELECT date(datetime(created_at, 'unixepoch')) as date, COUNT(*) as count 
-                 FROM pastes 
-                 WHERE created_at >= CAST(strftime('%s', 'now', '-7 days') AS INTEGER)
-                 GROUP BY date 
-                 ORDER BY date ASC",
-                "%Y-%m-%d"
+            "custom" => {
+                let span = custom_end.unwrap_or(0) - custom_start.unwrap_or(0);
+                if span <= 172800 {
+                    // <= 48 hours: hourly
+                    format!(
+                        "SELECT strftime('%Y-%m-%d %H:00', datetime(created_at, 'unixepoch')) as date, COUNT(*) as count \
+                         FROM pastes {} GROUP BY date ORDER BY date ASC",
+                        time_filter
+                    )
+                } else if span <= 7776000 {
+                    // <= 90 days: daily
+                    format!(
+                        "SELECT date(datetime(created_at, 'unixepoch')) as date, COUNT(*) as count \
+                         FROM pastes {} GROUP BY date ORDER BY date ASC",
+                        time_filter
+                    )
+                } else {
+                    // > 90 days: monthly
+                    format!(
+                        "SELECT strftime('%Y-%m', datetime(created_at, 'unixepoch')) as date, COUNT(*) as count \
+                         FROM pastes {} GROUP BY date ORDER BY date ASC",
+                        time_filter
+                    )
+                }
+            }
+            _ => format!(
+                "SELECT strftime('%Y-%m', datetime(created_at, 'unixepoch')) as date, COUNT(*) as count \
+                 FROM pastes {} GROUP BY date ORDER BY date ASC",
+                time_filter
             ),
         };
 
-        let mut time_stmt = conn.prepare(query)?;
-        
+        let time_stmt = conn.prepare(&time_query)?;
         for row in time_stmt.into_iter() {
             let row = row?;
             let date = row.read::<&str, _>(0).to_string();
@@ -688,6 +722,7 @@ impl Database {
                 expires_at,
                 edit_key: None,
                 edit_key_hash,
+                paste_type: None,
             });
         }
         
@@ -700,6 +735,172 @@ impl Database {
         } else {
             Err(DbError::PasteNotFound)
         }
+    }
+
+    /// List pastes with dynamic filters, sorting, and pagination.
+    ///
+    /// Returns (pastes, total_count) for pagination metadata.
+    pub fn list_pastes_filtered(
+        &self,
+        params: &crate::models::admin::PasteFilterParams,
+        limit: i64,
+        offset: i64,
+    ) -> Result<(Vec<Paste>, i64), DbError> {
+        let conn = self.connection.lock().unwrap();
+
+        // Build dynamic WHERE clause
+        let mut conditions: Vec<String> = Vec::new();
+        let mut bind_values: Vec<sqlite::Value> = Vec::new();
+
+        if let Some(ref lang) = params.language {
+            conditions.push("language = ?".to_string());
+            bind_values.push(sqlite::Value::String(lang.clone()));
+        }
+        if let Some(ref pt) = params.paste_type {
+            conditions.push("type = ?".to_string());
+            bind_values.push(sqlite::Value::String(pt.clone()));
+        }
+        if let Some(burn) = params.burn {
+            conditions.push("burn_after_read = ?".to_string());
+            bind_values.push(sqlite::Value::Integer(if burn { 1 } else { 0 }));
+        }
+        if let Some(has_exp) = params.expiration {
+            if has_exp {
+                conditions.push("expires_at IS NOT NULL".to_string());
+            } else {
+                conditions.push("expires_at IS NULL".to_string());
+            }
+        }
+        if let Some(start) = params.start_date {
+            conditions.push("created_at >= ?".to_string());
+            bind_values.push(sqlite::Value::Integer(start));
+        }
+        if let Some(end) = params.end_date {
+            conditions.push("created_at <= ?".to_string());
+            bind_values.push(sqlite::Value::Integer(end));
+        }
+        if let Some(ref search) = params.search {
+            if search.contains('%') || search.contains('_') {
+                conditions.push("id LIKE ?".to_string());
+                bind_values.push(sqlite::Value::String(search.clone()));
+            } else {
+                // Try exact match first, fallback to contains
+                conditions.push("id LIKE ?".to_string());
+                bind_values.push(sqlite::Value::String(
+                    format!("%{}%", search),
+                ));
+            }
+        }
+
+        let where_clause = if conditions.is_empty() {
+            String::new()
+        } else {
+            format!("WHERE {}", conditions.join(" AND "))
+        };
+
+        // Whitelist sort columns
+        let valid_sorts = [
+            "id", "language", "created_at", "type",
+            "burn_after_read", "expires_at",
+        ];
+        let sort_col = if valid_sorts.contains(&params.sort.as_str()) {
+            // "size" sorts by data length
+            params.sort.as_str()
+        } else if params.sort == "size" {
+            "LENGTH(data)"
+        } else {
+            "created_at"
+        };
+        let sort_dir = if params.order.to_uppercase() == "ASC" {
+            "ASC"
+        } else {
+            "DESC"
+        };
+
+        // Count query
+        let count_sql = format!("SELECT COUNT(*) FROM pastes {}", where_clause);
+        let mut count_stmt = conn.prepare(&count_sql)?;
+        for (i, val) in bind_values.iter().enumerate() {
+            count_stmt.bind((i + 1, val))?;
+        }
+        let total: i64 = count_stmt
+            .into_iter()
+            .map(|row| row.unwrap().read::<i64, _>(0))
+            .next()
+            .unwrap_or(0);
+
+        // Data query
+        let data_sql = format!(
+            "SELECT id, data, language, created_at, encryption_version, \
+             burn_after_read, expires_at, edit_key_hash, type \
+             FROM pastes {} ORDER BY {} {} LIMIT ? OFFSET ?",
+            where_clause, sort_col, sort_dir
+        );
+        let mut data_stmt = conn.prepare(&data_sql)?;
+
+        let bind_count = bind_values.len();
+        for (i, val) in bind_values.iter().enumerate() {
+            data_stmt.bind((i + 1, val))?;
+        }
+        data_stmt.bind((bind_count + 1, limit))?;
+        data_stmt.bind((bind_count + 2, offset))?;
+
+        let mut pastes = Vec::new();
+        for row in data_stmt.into_iter() {
+            let row = row?;
+            let id = row.read::<&str, _>("id").to_string();
+            let data = row.read::<&str, _>("data").to_string();
+            let language = row.read::<&str, _>("language").to_string();
+            let created_at_ts = row.read::<i64, _>("created_at");
+            let enc_ver = row.read::<i64, _>("encryption_version") as u8;
+            let burn = row.read::<i64, _>("burn_after_read") != 0;
+            let expires_ts = row.read::<Option<i64>, _>("expires_at");
+            let edit_hash: Option<String> = row
+                .read::<Option<&str>, _>("edit_key_hash")
+                .map(|s| s.to_string());
+            let ptype = row.read::<&str, _>("type").to_string();
+
+            let created_at = DateTime::from_timestamp(created_at_ts, 0)
+                .unwrap_or_else(|| Utc::now());
+            let expires_at = expires_ts
+                .map(|ts| DateTime::from_timestamp(ts, 0).unwrap_or_else(|| Utc::now()));
+
+            pastes.push(Paste {
+                id,
+                data,
+                language,
+                created_at,
+                encryption_version: enc_ver,
+                burn_after_read: burn,
+                expires_at,
+                edit_key: None,
+                edit_key_hash: edit_hash,
+                paste_type: Some(ptype),
+            });
+        }
+
+        Ok((pastes, total))
+    }
+
+    /// Bulk delete pastes by IDs.
+    ///
+    /// Returns (deleted_count, not_found_ids).
+    pub fn bulk_delete_pastes(
+        &self,
+        ids: &[String],
+    ) -> Result<(usize, Vec<String>), DbError> {
+        let mut deleted = 0usize;
+        let mut not_found = Vec::new();
+
+        for id in ids {
+            if self.delete_paste(id) {
+                deleted += 1;
+            } else {
+                not_found.push(id.clone());
+            }
+        }
+
+        Ok((deleted, not_found))
     }
 
     // ---- Workspace functions ----
@@ -801,6 +1002,7 @@ impl Database {
             expires_at: expires_at.map(|ts| DateTime::from_timestamp(ts, 0).unwrap_or_else(|| Utc::now())),
             edit_key: None,
             edit_key_hash: None,
+            paste_type: None,
         })
     }
 
@@ -855,6 +1057,7 @@ impl Database {
             expires_at,
             edit_key: None,
             edit_key_hash: None,
+            paste_type: None,
         })
     }
 
