@@ -19,6 +19,7 @@ Enable advanced options when creating a paste:
 - **Burn After Read**: Paste is automatically deleted after being viewed once
 - **Expiration**: Set pastes to auto-delete after a specified time (5 min to 1 week)
 - **Edit Keys**: Get a separate editable URL to make changes while sharing a read-only link
+- **Quantum-resistant**: Protect your pastes from potential future quantum computing attacks
 
 ## Getting Started
 
