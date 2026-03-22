@@ -78,6 +78,7 @@ CREATE_RATE_LIMIT=15
 UPDATE_RATE_LIMIT=15
 DELETE_RATE_LIMIT=15
 RUST_LOG=info
+ADMIN_SECRET=your_secret
 ```
 
 **CORS Configuration:**
@@ -102,7 +103,7 @@ To allow your frontend to connect to the backend, make sure to include your fron
 
    ```env
    # For development - update the port to match your backend configuration
-   VITE_API_URL=http://127.0.0.1:3000/v1
+   VITE_API_URL=http://localhost:3000/v1
 
    # For production
    # VITE_API_URL=https://yourdomain.com/v1
