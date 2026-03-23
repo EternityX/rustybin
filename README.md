@@ -14,7 +14,7 @@ A modern, secure pastebin service built with Rust and React. Rustybin allows you
 - **Modern Design**: Clean, dark-themed UI built with React, TypeScript, and Tailwind CSS
 - **Workspaces**: Create workspaces that allow you to store multiple pastes in a single URL
 
-### Advanced Mode
+### Advanced Features
 Enable advanced options when creating a paste:
 - **Burn After Read**: Paste is automatically deleted after being viewed once
 - **Expiration**: Set pastes to auto-delete after a specified time (5 min to 1 week)
@@ -27,7 +27,7 @@ Enable advanced options when creating a paste:
 
 - Rust (latest stable)
 - Node.js (v18+)
-- pnpm
+- npm
 
 ### Backend Setup
 
@@ -114,12 +114,12 @@ To allow your frontend to connect to the backend, make sure to include your fron
 3. Install dependencies:
 
    ```bash
-   pnpm install
+   npm install
    ```
 
 4. Start the development server:
    ```bash
-   pnpm dev
+   npm dev
    ```
 
 The frontend development server will start on http://localhost:3000.
