@@ -1,25 +1,50 @@
-# <img src="https://raw.githubusercontent.com/EternityX/rustybin/3ffa9b32aa8d5e5d5178ff7ee82ba288b440e9dc/site/public/favicon.svg" width="40" height="30"> [](https://rustyb.in)
+<p align="center">
+  <img src="site/public/favicon.svg" alt="Rustybin" width="64" height="64" />
+</p>
 
-A modern, secure pastebin service built with Rust and React. Rustybin allows you to create, view, and share text snippets with automatic syntax highlighting.
+<h1 align="center">Rustybin</h1>
+
+<p align="center">
+  A modern, secure pastebin service built with Rust and React. Rustybin allows you to create, view, and share text snippets with automatic syntax highlighting.
+</p>
+
+<p align="center">
+  <a href="https://rustyb.in">Live demo</a> &middot;
+  <a href="https://github.com/EternityX/rustybin/issues">Report a Bug</a>
+</p>
 
 ## Features
 
 ### Core
-- **End-to-End Encryption**: Client-side AES-GCM encryption - the server never sees your paste contents
+- **End-to-End Encryption**: Client-side AES-256-GCM encryption — the server never sees your paste contents
 - **Zero-Knowledge Architecture**: Decryption keys stay in the URL fragment (#) and are never sent to the server
+- **Quantum-Resistant Encryption**: Optional ML-KEM-1024 (CRYSTALS-Kyber) hybrid encryption to protect pastes from future quantum computing attacks
 - **Syntax Highlighting**: Support for 30+ programming languages using Prism
 - **Auto Language Detection**: Automatically detects the programming language as you type
+- **Workspaces**: Create workspaces that allow you to store multiple pastes under a single URL
+- **Markdown Support**: Full markdown rendering with GFM, syntax highlighting, task lists, footnotes, emoji, and more
 - **RESTful API**: Full API for creating, retrieving, updating, and deleting pastes
 - **SQLite Database**: Lightweight, file-based database for storing encrypted pastes
 - **Modern Design**: Clean, dark-themed UI built with React, TypeScript, and Tailwind CSS
-- **Workspaces**: Create workspaces that allow you to store multiple pastes in a single URL
 
 ### Advanced Features
 Enable advanced options when creating a paste:
 - **Burn After Read**: Paste is automatically deleted after being viewed once
 - **Expiration**: Set pastes to auto-delete after a specified time (5 min to 1 week)
 - **Edit Keys**: Get a separate editable URL to make changes while sharing a read-only link
-- **Quantum-resistant**: Protect your pastes from potential future quantum computing attacks
+- **Quantum-Resistant Mode**: Wraps AES-256-GCM with ML-KEM-1024 key encapsulation for post-quantum security
+
+### Admin Dashboard
+A built-in admin dashboard for site operators, accessible at `/admin`:
+- **Secure Authentication**: Login with a pre-configured admin secret, JWT sessions stored in HTTP-only cookies
+- **Dashboard Statistics**: View total pastes, pending expiration, burn-after-read count, and total storage size
+- **Time-Series Charts**: Visualize paste creation over selectable time ranges (24h, 7d, 30d, 1y, all time, custom)
+- **Language Distribution**: See which programming languages are most popular
+- **Paste Management**: Browse, search, filter, and sort all pastes with a paginated table
+- **Bulk Operations**: Delete individual pastes or bulk delete up to 100 at once with confirmation dialogs
+- **Audit Logging**: All admin actions (login, logout, deletions) are logged server-side
+- **Separate Rate Limiting**: Admin endpoints have independent rate limits from the public API
+- **Auto-Disable**: Dashboard is completely disabled when `ADMIN_SECRET` is not configured
 
 ## Getting Started
 
@@ -56,29 +81,37 @@ The backend server will start on http://localhost:3000 (or the port specified in
 
 The backend can be configured using the following environment variables:
 
-| Variable               | Description                                     | Default                                                               |
-| ---------------------- | ----------------------------------------------- | --------------------------------------------------------------------- |
-| `PORT`                 | Server port                                     | `3000`                                                                |
-| `RUST_ENV`             | Environment mode                                | `development`                                                         |
-| `CORS_ALLOWED_ORIGINS` | Comma-separated list of allowed CORS origins    | `https://rustybin.net,http://localhost:8080,https://api.rustybin.net` |
-| `READ_RATE_LIMIT`      | Read operations per minute per IP               | `45`                                                                  |
-| `CREATE_RATE_LIMIT`    | Create operations per minute per IP             | `15`                                                                  |
-| `UPDATE_RATE_LIMIT`    | Update operations per minute per IP             | `15`                                                                  |
-| `DELETE_RATE_LIMIT`    | Delete operations per minute per IP             | `15`                                                                  |
-| `RUST_LOG`             | Logging level (error, warn, info, debug, trace) | `info`                                                                |
+| Variable | Description | Default |
+|---|---|---|
+| `PORT` | Server port | `3000` |
+| `RUST_ENV` | Environment mode (`development` or `production`) | `development` |
+| `CORS_ALLOWED_ORIGINS` | Comma-separated list of allowed CORS origins | `https://rustybin.net,http://localhost:8080,http://localhost:5173,https://api.rustybin.net` |
+| `READ_RATE_LIMIT` | Read operations per minute per IP | `45` |
+| `CREATE_RATE_LIMIT` | Create operations per minute per IP | `15` |
+| `UPDATE_RATE_LIMIT` | Update operations per minute per IP | `15` |
+| `DELETE_RATE_LIMIT` | Delete operations per minute per IP | `15` |
+| `RUST_LOG` | Logging level (error, warn, info, debug, trace) | `info` |
+| `ADMIN_SECRET` | Admin dashboard password (dashboard disabled if unset) | *(none)* |
+| `ADMIN_SESSION_HOURS` | Admin session duration in hours | `24` |
+| `ADMIN_LOGIN_RATE_LIMIT` | Admin login attempts per minute per IP | `5` |
+| `ADMIN_READ_RATE_LIMIT` | Admin read operations per minute | `60` |
+| `ADMIN_DELETE_RATE_LIMIT` | Admin delete operations per minute | `20` |
 
 **Example .env file:**
 
 ```env
 PORT=3000
 RUST_ENV=development
-CORS_ALLOWED_ORIGINS=https://yourdomain.com,http://localhost:3000
+CORS_ALLOWED_ORIGINS=https://yourdomain.com,http://localhost:5173
 READ_RATE_LIMIT=45
 CREATE_RATE_LIMIT=15
 UPDATE_RATE_LIMIT=15
 DELETE_RATE_LIMIT=15
 RUST_LOG=info
-ADMIN_SECRET=your_secret
+
+# Admin dashboard (omit ADMIN_SECRET to disable)
+ADMIN_SECRET=your-secure-admin-secret
+ADMIN_SESSION_HOURS=24
 ```
 
 **CORS Configuration:**
@@ -135,6 +168,19 @@ All endpoints are prefixed with `/v1`.
 | `GET` | `/v1/pastes/:id` | Get a specific paste |
 | `PUT` | `/v1/pastes/:id` | Update a paste (requires edit key) |
 | `DELETE` | `/v1/pastes/:id` | Delete a paste (requires edit key) |
+
+#### Admin Endpoints
+
+These endpoints are only available when `ADMIN_SECRET` is configured.
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/v1/admin/login` | Authenticate with admin secret |
+| `POST` | `/v1/admin/logout` | Clear admin session |
+| `GET` | `/v1/admin/stats` | Dashboard statistics (with time range query params) |
+| `GET` | `/v1/admin/pastes` | Filtered, paginated paste list |
+| `DELETE` | `/v1/admin/pastes/:id` | Delete a single paste |
+| `DELETE` | `/v1/admin/pastes` | Bulk delete pastes (IDs in request body) |
 
 ### Request/Response Details
 
