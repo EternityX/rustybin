@@ -62,7 +62,7 @@ const EXPIRATION_OPTIONS = [
 
 const Index: React.FC = () => {
   const [text, setText] = useState("");
-  const [language, setLanguage] = useState("javascript");
+  const [language, setLanguage] = useState("markdown");
   const [isLanguageManuallySelected, setIsLanguageManuallySelected] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isViewMode, setIsViewMode] = useState(false);
