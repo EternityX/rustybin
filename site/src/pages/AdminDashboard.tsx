@@ -55,8 +55,11 @@ export default function AdminDashboard() {
       : undefined;
   const endTs =
     timeRange === "custom" && customEnd
-      ? Math.floor(new Date(customEnd).getTime() / 1000)
+      ? Math.floor(new Date(customEnd + "T23:59:59").getTime() / 1000)
       : undefined;
+
+  const customRangeReady =
+    timeRange !== "custom" || (startTs !== undefined && endTs !== undefined);
 
   const {
     data: stats,
@@ -66,6 +69,7 @@ export default function AdminDashboard() {
     queryKey: ["admin-stats", timeRange, startTs, endTs],
     queryFn: () => fetchStats(timeRange, startTs, endTs),
     retry: false,
+    enabled: customRangeReady,
   });
 
   const {
