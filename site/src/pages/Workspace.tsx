@@ -42,7 +42,8 @@ import { Label } from "@/components/ui/label";
 
 import { arrayMove } from "@dnd-kit/sortable";
 import type { WorkspaceBundle, WorkspaceFile, WorkspaceNode } from "@/lib/workspace-types";
-import { createEmptyBundle, countFiles, validateBundle } from "@/lib/workspace-types";
+import { createEmptyBundle, countFiles, validateBundle, MAX_WORKSPACE_FILES, MAX_BUNDLE_SIZE } from "@/lib/workspace-types";
+import { processDroppedFiles } from "@/lib/file-drop";
 import {
   createWorkspace,
   getWorkspace,
@@ -238,6 +239,53 @@ export default function Workspace() {
       setSelectedIndex(selectedIndex + 1);
     }
   }, [selectedIndex]);
+
+  const handleFileDrop = useCallback(async (droppedFiles: File[]) => {
+    const result = await processDroppedFiles(droppedFiles);
+
+    for (const rejected of result.rejected) {
+      toast.error(`${rejected.name}: ${rejected.reason}`);
+    }
+
+    if (result.files.length === 0) return;
+
+    const currentFileCount = countFiles(bundle.tree);
+    const remainingSlots = MAX_WORKSPACE_FILES - currentFileCount;
+
+    if (remainingSlots <= 0) {
+      toast.error(`Workspace is full (${MAX_WORKSPACE_FILES} files maximum)`);
+      return;
+    }
+
+    let filesToAdd = result.files;
+    if (filesToAdd.length > remainingSlots) {
+      toast.warning(`Only ${remainingSlots} of ${filesToAdd.length} files were added (workspace limit: ${MAX_WORKSPACE_FILES} files)`);
+      filesToAdd = filesToAdd.slice(0, remainingSlots);
+    }
+
+    const currentBundleSize = new TextEncoder().encode(JSON.stringify(bundle)).length;
+    const accepted: WorkspaceFile[] = [];
+    let runningSize = currentBundleSize;
+
+    for (const file of filesToAdd) {
+      const entrySize = new TextEncoder().encode(
+        JSON.stringify({ type: "file", name: file.name, language: file.language, content: file.content })
+      ).length;
+      if (runningSize + entrySize > MAX_BUNDLE_SIZE) {
+        toast.error(`${file.name} skipped — would exceed workspace size limit`);
+        continue;
+      }
+      runningSize += entrySize;
+      accepted.push({ type: "file", name: file.name, language: file.language, content: file.content });
+    }
+
+    if (accepted.length === 0) return;
+
+    const prevFileCount = files.length;
+    setBundle((prev) => ({ ...prev, tree: [...prev.tree, ...accepted] }));
+    setSelectedIndex(prevFileCount);
+    toast.success(`${accepted.length} file(s) imported`);
+  }, [bundle, files.length]);
 
   const handleSave = useCallback(async () => {
     const validation = validateBundle(bundle);
@@ -536,6 +584,9 @@ export default function Workspace() {
                     readOnly={!isEditable}
                     showLineNumbers={!isEditable}
                     placeholder=""
+                    onFileDrop={handleFileDrop}
+                    dropDisabled={!isEditable}
+                    dropOverlayText="Drop file(s) to add"
                   />
                 </div>
                 <div className="flex-1 overflow-auto p-6 max-w-none hidden md:block">
@@ -553,6 +604,9 @@ export default function Workspace() {
                 readOnly={!isEditable}
                 showLineNumbers={!isEditable}
                 placeholder=""
+                onFileDrop={handleFileDrop}
+                dropDisabled={!isEditable}
+                dropOverlayText="Drop file(s) to add"
               />
             )
           ) : (

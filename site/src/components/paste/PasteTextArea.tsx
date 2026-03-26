@@ -3,7 +3,7 @@ import Editor from "react-simple-code-editor";
 import { getPrismLanguage } from "@/utils/language-utils";
 import { highlightWithPrism } from "@/utils/prism-utils";
 import { usePrismTheme } from "@/utils/prism-theme-utils";
-import { Loader2 } from "lucide-react";
+import { Loader2, Upload } from "lucide-react";
 
 export interface PasteTextAreaHandle {
   getTextarea: () => HTMLTextAreaElement | null;
@@ -28,6 +28,9 @@ type PasteTextAreaProps = {
   onLimitExceeded?: (isExceeded: boolean) => void;
   onByteStatsChange?: (stats: ByteStats) => void;
   placeholder?: string;
+  onFileDrop?: (files: File[]) => void;
+  dropDisabled?: boolean;
+  dropOverlayText?: string;
 };
 
 /**
@@ -64,9 +67,46 @@ const PasteTextArea = forwardRef<PasteTextAreaHandle, PasteTextAreaProps>(({
   onLimitExceeded,
   onByteStatsChange,
   placeholder = "Paste away! Your pastes are securely encrypted by your browser before they're saved to our server.",
+  onFileDrop,
+  dropDisabled = false,
+  dropOverlayText = "Drop file here",
 }, ref) => {
   const { background, textColor } = usePrismTheme();
   const editorRef = useRef<HTMLDivElement>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
+  const dragCounterRef = useRef(0);
+
+  const dropEnabled = !!onFileDrop && !dropDisabled;
+
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    if (!dropEnabled) return;
+    dragCounterRef.current++;
+    setIsDragOver(true);
+  }, [dropEnabled]);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    if (!dropEnabled) return;
+    dragCounterRef.current--;
+    if (dragCounterRef.current <= 0) {
+      dragCounterRef.current = 0;
+      setIsDragOver(false);
+    }
+  }, [dropEnabled]);
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    dragCounterRef.current = 0;
+    setIsDragOver(false);
+    if (!dropEnabled || !onFileDrop) return;
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) onFileDrop(files);
+  }, [dropEnabled, onFileDrop]);
 
   useImperativeHandle(ref, () => ({
     getTextarea: () => editorRef.current?.querySelector("textarea") ?? null,
@@ -219,7 +259,19 @@ const PasteTextArea = forwardRef<PasteTextAreaHandle, PasteTextAreaProps>(({
   const isOverLimit = charStats.remaining < 0;
 
   return (
-    <div className="flex-1 text-card-foreground flex flex-col relative w-full h-full min-h-0 min-w-0">
+    <div
+      className="flex-1 text-card-foreground flex flex-col relative w-full h-full min-h-0 min-w-0"
+      onDragEnter={handleDragEnter}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
+      {isDragOver && dropEnabled && (
+        <div className="absolute inset-0 z-20 flex flex-col items-center justify-center bg-primary/5 backdrop-blur-sm border-2 border-dashed border-primary rounded pointer-events-none">
+          <Upload className="h-8 w-8 text-primary mb-2" />
+          <span className="text-primary text-sm font-medium">{dropOverlayText}</span>
+        </div>
+      )}
       <div
         ref={editorRef}
         className="editor-scroll-container relative flex-grow overflow-auto font-mono flex flex-col"

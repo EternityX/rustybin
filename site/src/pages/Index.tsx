@@ -5,6 +5,7 @@ import Layout from "@/components/layout/Layout";
 import PasteTextArea, { type ByteStats } from "@/components/paste/PasteTextArea";
 import { detectLanguage } from "@/lib/language-detector";
 import { debounce } from "@/lib/debounce";
+import { processDroppedFiles } from "@/lib/file-drop";
 import type { ShareDialogData } from "@/lib/types";
 
 import { toast } from "sonner";
@@ -227,6 +228,32 @@ const Index: React.FC = () => {
     setExpiresInMinutes(null);
     setQuantumResistant(false);
     setIsLanguageManuallySelected(false);
+  }, []);
+
+  const handleFileDrop = useCallback(async (files: File[]) => {
+    const result = await processDroppedFiles(files);
+
+    for (const rejected of result.rejected) {
+      toast.error(`${rejected.name}: ${rejected.reason}`);
+    }
+
+    if (result.files.length === 0) return;
+
+    if (files.length > 1 && result.files.length >= 1) {
+      toast.warning("Only the first file was imported. Use a Workspace for multiple files.");
+    }
+
+    const file = result.files[0];
+    const MAX_BYTES = 125000;
+    if (file.byteSize > MAX_BYTES) {
+      toast.error(`${file.name} exceeds the size limit (${Math.round(file.byteSize / 1000)}KB / ${MAX_BYTES / 1000}KB)`);
+      return;
+    }
+
+    setText(file.content);
+    setLanguage(file.language);
+    setIsLanguageManuallySelected(true);
+    toast.success(`${file.name} imported`);
   }, []);
 
   const copyToClipboard = async (text: string, type: 'view' | 'edit') => {
@@ -704,6 +731,8 @@ const Index: React.FC = () => {
                 readOnly={isViewMode && !canEdit}
                 showLineNumbers={isViewMode}
                 onByteStatsChange={setByteStats}
+                onFileDrop={handleFileDrop}
+                dropDisabled={isViewMode && !canEdit}
               />
             </div>
             <div className="flex-1 overflow-auto p-6 max-w-none hidden md:block">
@@ -720,6 +749,8 @@ const Index: React.FC = () => {
             readOnly={isViewMode && !canEdit}
             showLineNumbers={isViewMode}
             onByteStatsChange={setByteStats}
+            onFileDrop={handleFileDrop}
+            dropDisabled={isViewMode && !canEdit}
           />
         )}
       </Layout>

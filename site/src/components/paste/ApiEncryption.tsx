@@ -72,7 +72,7 @@ const response = await fetch(
 );
 
 const result = await response.json();
-console.log(\`URL: https://rustyb.in/\${result.id}#\${keyBase64}\`);`;
+console.log(\`URL: https://rustybin.net/\${result.id}#\${keyBase64}\`);`;
 
 const PY_ENCRYPT_EXAMPLE = `import os, base64, requests
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -100,7 +100,7 @@ response = requests.post(
 )
 
 result = response.json()
-print(f"URL: https://rustyb.in/{result['id']}#{key_base64}")`;
+print(f"URL: https://rustybin.net/{result['id']}#{key_base64}")`;
 
 const JS_DECRYPT_EXAMPLE = `import crypto from 'crypto';
 
@@ -287,7 +287,7 @@ const ApiEncryption: React.FC<ApiEncryptionProps> = ({ trigger, open, onOpenChan
             The API returns a paste ID. Construct the shareable URL with the key in the fragment (never sent to the server):
           </p>
           <div className="bg-white/5 border border-white/10 rounded p-2 text-xs font-mono text-white/70 text-center">
-            https://rustyb.in/<span className="text-primary">{`{paste_id}`}</span>#<span className="text-green-400">{`{key_base64}`}</span>
+            https://rustybin.net/<span className="text-primary">{`{paste_id}`}</span>#<span className="text-green-400">{`{key_base64}`}</span>
           </div>
         </section>
 
@@ -365,7 +365,7 @@ const ApiEncryption: React.FC<ApiEncryptionProps> = ({ trigger, open, onOpenChan
           <span className="font-mono text-white/60 text-xs">base64( KEM_ciphertext[1568] || IV[12] || AES_ciphertext )</span>
         </p>
         <div className="bg-white/5 border border-white/10 rounded p-2 text-xs font-mono text-white/70 text-center">
-          https://rustyb.in/<span className="text-primary">{`{id}`}</span>#q:<span className="text-green-400">{`{base64url_decapsulation_key}`}</span>
+          https://rustybin.net/<span className="text-primary">{`{id}`}</span>#q:<span className="text-green-400">{`{base64url_decapsulation_key}`}</span>
         </div>
         <p className="text-sm text-white/70 leading-relaxed">
           To decrypt a quantum paste programmatically: extract the <span className="font-mono text-white/80">q:</span> prefix

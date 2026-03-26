@@ -9,7 +9,7 @@
 </p>
 
 <p align="center">
-  <a href="https://rustyb.in">Live demo</a> &middot;
+  <a href="https://rustybin.net">Live demo</a> &middot;
   <a href="https://github.com/EternityX/rustybin/issues">Report a Bug</a>
 </p>
 
