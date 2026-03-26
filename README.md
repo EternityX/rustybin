@@ -13,6 +13,30 @@
   <a href="https://github.com/EternityX/rustybin/issues">Report a Bug</a>
 </p>
 
+## Comparison
+
+See how Rustybin stacks up against other popular paste services:
+
+| Feature | Rustybin | GitHub Gist | Hemmelig | PrivateBin | EnigmaBin |
+|---|:---:|:---:|:---:|:---:|:---:|
+| **End-to-end encryption** | ✅ AES-256-GCM | ❌ | ✅ AES-256-GCM | ✅ AES-256-GCM | ✅ XChaCha20-Poly1305 |
+| **Zero-knowledge server** | ✅ | ❌ | ✅ | ✅ | ✅ |
+| **Quantum-resistant encryption** | ✅ ML-KEM-1024 | ❌ | ❌ | ❌ | ✅ ML-KEM-1024 |
+| **Syntax highlighting** | ✅ | ✅ | ❌ | ✅ | ✅ |
+| **Auto language detection** | ✅ | ⚠️ File extension | ❌ | ✅ | ❌ |
+| **Markdown rendering** | ✅  | ✅ | ❌ | ✅ | ✅ |
+| **Workspaces / multi-file** | ✅ | ✅ | ❌ | ❌ | ❌ |
+| **Burn after read** | ✅ | ❌ | ✅ | ✅ | ✅ |
+| **Paste expiration** | ✅ 5m - never | ❌ | ✅ 5m – 28d | ✅ 5m – never | ✅ 1h – never |
+| **Password protection** | ✅ (via encryption) | ❌ | ✅ | ✅ | ✅ (via encryption) |
+| **Edit key / edit support** | ✅ Separate edit URL | ✅ Owner only | ❌ | ❌ | ❌ |
+| **Admin dashboard** | ✅ | ❌ | ✅ | ❌ | ❌ |
+| **Self-hostable** | ✅ | ❌ | ✅ | ✅ | ✅ |
+| **Open source** | ✅ MIT | ❌ Proprietary | ✅ O'Saasy | ✅ zlib | ⚠️ Source-available |
+| **No account required** | ✅ | ❌ | ⚠️ Some features require account | ✅ | ✅ |
+| **API** | ✅ | ✅ | ✅ | ✅ | ❌ |
+| **Drag & drop file import** | ✅ | ✅ | ⚠️ Requires account | ✅ | ❌ |
+
 ## Features
 
 ### Core
