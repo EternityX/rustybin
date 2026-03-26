@@ -16,6 +16,13 @@ interface ChangelogEntry {
 
 const CHANGELOG: ChangelogEntry[] = [
   {
+    date: "2026-03-26",
+    version: "0.3.0",
+    changes: [
+      "Added drag & drop file import for pastes",
+    ],
+  },
+  {
     date: "2026-03-20",
     version: "0.2.0",
     changes: [
@@ -35,7 +42,7 @@ const CHANGELOG: ChangelogEntry[] = [
 ];
 
 // Bump this every time you add a new entry above
-export const CHANGELOG_VERSION = "0.2.0";
+export const CHANGELOG_VERSION = "0.3.0";
 
 const STORAGE_KEY = "rustybin-changelog-seen";
 
