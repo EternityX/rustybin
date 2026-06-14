@@ -264,7 +264,7 @@ const MainLayout = ({
                     : "unhealthy";
             return (
               <div
-                className={`items-center gap-1.5 pl-2 pr-3 py-1 text-[10px] uppercase tracking-wider font-bold ${textColor} hidden sm:flex border-r h-[30ritepx] mr-1.5 border-white/10`}
+                className={`items-center gap-1.5 pl-2 pr-3 py-1 text-[10px] uppercase tracking-wider font-bold ${textColor} hidden sm:flex border-r h-[31px] mr-1.5 border-white/10`}
               >
                 <div
                   className={`w-1.5 h-1.5 rounded-full ${dotColor} relative`}

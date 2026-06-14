@@ -844,12 +844,11 @@ const Index: React.FC = () => {
 
           {/* Options side-panel (desktop, create mode) */}
           {showAdvancedToggle && (
-            <aside className="hidden lg:flex w-64 shrink-0 flex-col border-l border-border bg-card overflow-y-auto">
-              <div className="flex items-center gap-2 h-[37px] px-3 border-b border-border text-[13px] font-semibold text-white">
+            <aside className="hidden lg:flex w-64 shrink-0 flex-col border-l border-border bg-[#0D0E11] overflow-y-auto">
+              <div className="flex items-center gap-2 h-[37px] px-2 border-b border-border text-[13px] font-semibold text-white">
                 <span className="icon-tile h-6 w-6">
                   <Settings2 className="h-3.5 w-3.5" />
                 </span>
-                Options
               </div>
 
               <div className="flex items-center justify-between px-3 py-3 border-b border-border text-sm">
@@ -939,7 +938,7 @@ const Index: React.FC = () => {
               <button
                 onClick={() => !isLoading && saveContent()}
                 disabled={isLoading}
-                className="btn-shine mt-auto bg-primary text-primary-foreground font-normal mx-4 text-sm my-3 py-3 rounded-md border-t border-primary/55 hover:bg-primary/90 transition-colors disabled:opacity-50"
+                className="mt-auto bg-primary text-primary-foreground font-normal mx-4 text-sm my-3 py-3 rounded border-t border-primary/55 hover:bg-primary/90 transition-colors disabled:opacity-50"
               >
                 {isLoading ? "Creating…" : "Create paste"}
               </button>
@@ -948,7 +947,7 @@ const Index: React.FC = () => {
         </div>
 
         {/* Editor status bar */}
-        <div className="flex items-center border-t border-border bg-[#0d0e11] text-[10px] uppercase tracking-wider font-bold text-muted-foreground shrink-0">
+        <div className="flex items-center border-t border-border bg-[#1A1B20] text-[10px] uppercase tracking-wider font-bold text-muted-foreground shrink-0">
           <span className="px-3 py-1.5 border-r border-border">
             {getLanguageLabel(language)}
           </span>

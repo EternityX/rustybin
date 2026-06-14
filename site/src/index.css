@@ -103,7 +103,7 @@
 .icon-tile {
   display: inline-grid;
   place-content: center;
-  border-radius: 0.75rem;
+  border-radius: 0.25rem;
   background: hsl(var(--primary) / 0.10);
   border: 1px solid hsl(var(--primary) / 0.25);
   color: hsl(var(--primary));
