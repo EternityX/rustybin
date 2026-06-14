@@ -21,7 +21,8 @@ export default {
     	extend: {
     		fontFamily: {
     			sans: [
-    				'Rubik',
+    				'Inter',
+    				'SF Pro Display',
     				'system-ui',
     				'sans-serif'
     			],
