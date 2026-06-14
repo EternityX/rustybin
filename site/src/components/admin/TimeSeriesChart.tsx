@@ -12,8 +12,8 @@ interface TimeSeriesChartProps {
   data: { date: string; count: number }[];
 }
 
-const MAUVE = "#ff6600";
-const MAUVE_FILL = "rgba(255, 102, 0, 0.15)";
+const MAUVE = "hsl(348, 26%, 60%)";
+const MAUVE_FILL = "hsla(348, 26%, 60%, 0.15)";
 
 export function TimeSeriesChart({ data }: TimeSeriesChartProps) {
   if (data.length === 0) {
@@ -45,7 +45,7 @@ export function TimeSeriesChart({ data }: TimeSeriesChartProps) {
           />
           <Tooltip
             contentStyle={{
-              backgroundColor: "#0F1014",
+              backgroundColor: "#2D2D2D",
               border: `1px solid ${MAUVE}`,
               borderRadius: "8px",
               color: "#e0e0e0",

@@ -12,14 +12,14 @@ interface LanguageBreakdownProps {
 }
 
 const COLORS = [
-  "#ff6600",
-  "#ff8c33",
-  "#e65d2c",
-  "#139a65",
-  "#3b82f6",
-  "#a855f7",
-  "#eab308",
-  "#22d3ee",
+  "hsl(348, 26%, 60%)",
+  "hsl(348, 26%, 45%)",
+  "hsl(220, 30%, 55%)",
+  "hsl(160, 25%, 50%)",
+  "hsl(40, 30%, 55%)",
+  "hsl(280, 20%, 55%)",
+  "hsl(10, 35%, 55%)",
+  "hsl(190, 30%, 50%)",
 ];
 
 export function LanguageBreakdown({ data }: LanguageBreakdownProps) {
@@ -69,8 +69,8 @@ export function LanguageBreakdown({ data }: LanguageBreakdownProps) {
           </Pie>
           <Tooltip
             contentStyle={{
-              backgroundColor: "#0F1014",
-              border: "1px solid #20222a",
+              backgroundColor: "#2D2D2D",
+              border: "1px solid #555",
               borderRadius: "8px",
               color: "#e0e0e0",
               fontSize: 13,
