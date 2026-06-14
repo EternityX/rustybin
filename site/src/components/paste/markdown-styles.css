@@ -191,14 +191,15 @@
   position: absolute;
   top: 0;
   right: 0;
-  padding: 2px 8px;
+  padding: 2px 12px;
+  border-radius: 0px 4px 0 4px;
   font-size: 10px;
   font-family: "JetBrains Mono", monospace;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: rgba(255, 255, 255, 0.3);
-  background: rgba(255, 255, 255, 0.05);
-  border-bottom-left-radius: 4px;
+  color: hsl(24, 100%, 50%);
+  background: hsl(24, 100%, 10%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   user-select: none;
 }
 

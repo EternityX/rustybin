@@ -44,6 +44,7 @@ import {
   Shield,
   ShieldCheck,
   Settings2,
+  Calendar,
 } from "lucide-react";
 import { getLanguageLabel } from "@/utils/language-utils";
 import type { PasteTextAreaHandle } from "@/components/paste/PasteTextArea";
@@ -597,7 +598,7 @@ const Index: React.FC = () => {
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="flex items-center gap-2">
-                <Clock
+                <Calendar
                   className={`h-3.5 w-3.5 ${expiresInMinutes ? "text-primary" : "text-white/50"}`}
                 />
                 <Select
@@ -608,7 +609,7 @@ const Index: React.FC = () => {
                     )
                   }
                 >
-                  <SelectTrigger className="h-[21px] w-[120px] text-[10px] uppercase tracking-wider font-bold bg-[#0F1014]/0 border-[#20222a] rounded">
+                  <SelectTrigger className="h-[21px] w-[120px] text-[10px] uppercase tracking-wider font-bold border-white/10 rounded">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className="bg-[#0F1014] border-[#20222a] rounded">
@@ -712,7 +713,7 @@ const Index: React.FC = () => {
           showPreviewControls ||
           showAdvancedToggle ||
           currentPath === "/") && (
-          <div className="flex items-center gap-2 px-1 py-1 border-b border-white/10 bg-[#1a1b20] sticky top-[35px] z-40">
+          <div className="flex items-center gap-2 pr-1 py-1 border-b border-white/10 bg-[#1a1b20] sticky top-[35px] z-40">
             {/* View-mode markdown toggle (read-only pastes) */}
             {isMarkdown && isViewMode && !canEdit && (
               <Button
@@ -741,7 +742,7 @@ const Index: React.FC = () => {
                   text={text}
                   setText={setText}
                 />
-                <div className="flex items-center gap-0.5 border-l border-white/10 pl-2">
+                <div className="flex items-center  border-l border-white/10 pl-2">
                   {(["write", "preview", "split"] as const).map((mode) => {
                     const icons = {
                       write: Pencil,
@@ -775,9 +776,9 @@ const Index: React.FC = () => {
               </>
             )}
 
-            <div className="flex items-center gap-2 ml-auto">
+            <div className="flex items-center ml-auto">
               {advancedControls && (
-                <div className="hidden sm:flex lg:hidden items-center gap-2">
+                <div className="hidden sm:flex lg:hidden items-center gap-2 pr-2 border-white/10 border-r">
                   {advancedControls}
                 </div>
               )}
@@ -786,7 +787,7 @@ const Index: React.FC = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-6 gap-1 text-[10px] uppercase tracking-wider hover:rounded font-bold text-white/50 hover:text-primary"
+                  className="h-6 text-[10px] uppercase tracking-wider hover:rounded font-bold text-white/50 hover:text-primary"
                   onClick={() => navigate("/w/new")}
                 >
                   <FolderOpen className="h-3.5 w-3.5" />
@@ -870,7 +871,7 @@ const Index: React.FC = () => {
                 className={`flex items-center justify-between px-3 py-3 border-b border-border text-sm transition-opacity ${advancedMode ? "" : "opacity-40 pointer-events-none"}`}
               >
                 <span className="flex items-center gap-2 text-white/80">
-                  <Clock className="h-3.5 w-3.5" /> Expiration
+                  <Clock className="h-3.5 w-3.5 text-primary" /> Expiration
                 </span>
                 <Select
                   value={expiresInMinutes?.toString() || "never"}
@@ -901,7 +902,7 @@ const Index: React.FC = () => {
                 className={`flex items-center justify-between px-3 py-3 border-b border-border text-sm transition-opacity ${advancedMode ? "" : "opacity-40 pointer-events-none"}`}
               >
                 <span className="flex items-center gap-2 text-white/80">
-                  <Flame className="h-3.5 w-3.5" /> Burn after read
+                  <Flame className="h-3.5 w-3.5 text-primary" /> Burn after read
                 </span>
                 <Switch
                   checked={burnAfterRead}
@@ -914,7 +915,7 @@ const Index: React.FC = () => {
                 className={`flex items-center justify-between px-3 py-3 border-b border-border text-sm transition-opacity ${advancedMode ? "" : "opacity-40 pointer-events-none"}`}
               >
                 <span className="flex items-center gap-2 text-white/80">
-                  <Shield className="h-3.5 w-3.5" /> Quantum
+                  <Shield className="h-3.5 w-3.5 text-primary" /> Quantum
                 </span>
                 <Switch
                   checked={quantumResistant}
@@ -938,7 +939,7 @@ const Index: React.FC = () => {
               <button
                 onClick={() => !isLoading && saveContent()}
                 disabled={isLoading}
-                className="btn-shine mt-auto bg-primary text-primary-foreground font-bold text-sm py-3 border-t border-primary/55 hover:bg-primary/90 transition-colors disabled:opacity-50"
+                className="btn-shine mt-auto bg-primary text-primary-foreground font-normal mx-4 text-sm my-3 py-3 rounded-md border-t border-primary/55 hover:bg-primary/90 transition-colors disabled:opacity-50"
               >
                 {isLoading ? "Creating…" : "Create paste"}
               </button>

@@ -235,7 +235,7 @@ const MainLayout = ({
       </main>
 
       <footer className="sticky bottom-0 z-50 border-t border-white/10 bg-[#0d0e11]">
-        <div className="flex min-h-[30px] items-center  py-1">
+        <div className="flex min-h-[30px] items-center ">
           {(() => {
             const isChecking = apiHealth === "checking";
             const dotColor = isChecking
@@ -267,7 +267,7 @@ const MainLayout = ({
                     : "unhealthy";
             return (
               <div
-                className={`items-center gap-1.5 pl-2 pr-3 py-1 text-[10px] uppercase tracking-wider font-bold ${textColor} hidden sm:flex border-r mr-1.5 border-white/10`}
+                className={`items-center gap-1.5 pl-2 pr-3 py-1 text-[10px] uppercase tracking-wider font-bold ${textColor} hidden sm:flex border-r h-[30ritepx] mr-1.5 border-white/10`}
               >
                 <div
                   className={`w-1.5 h-1.5 rounded-full ${dotColor} relative`}
@@ -280,77 +280,78 @@ const MainLayout = ({
               </div>
             );
           })()}
-
-          <SecurityInfo
-            open={securityOpen}
-            onOpenChange={setSecurityOpen}
-            trigger={
-              <button className="flex items-center gap-1.5 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-white/30 hover:text-primary transition-colors">
-                <ShieldCheck className="h-3.5 w-3.5" />
-                <span className="hidden md:inline">Security Overview</span>
-              </button>
-            }
-          />
-
-          <Terms
-            open={termsOpen}
-            onOpenChange={setTermsOpen}
-            trigger={
-              <button className="flex items-center gap-1.5 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-white/30 hover:text-primary transition-colors">
-                <FileText className="h-3.5 w-3.5" />
-                <span className="hidden md:inline">Terms of Service</span>
-              </button>
-            }
-          />
-
-          <Privacy
-            open={privacyOpen}
-            onOpenChange={setPrivacyOpen}
-            trigger={
-              <button className="flex items-center gap-1.5 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-white/30 hover:text-primary transition-colors">
-                <Eye className="h-3.5 w-3.5" />
-                <span className="hidden md:inline">Privacy Policy</span>
-              </button>
-            }
-          />
-
-          <ApiEncryption
-            open={apiEncryptionOpen}
-            onOpenChange={setApiEncryptionOpen}
-            trigger={
-              <button className="flex items-center gap-1.5 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-white/30 hover:text-primary transition-colors">
-                <Code className="h-3.5 w-3.5" />
-                <span className="hidden md:inline">API</span>
-              </button>
-            }
-          />
-
-          <Changelog
-            open={changelogOpen}
-            onOpenChange={(open) => {
-              setChangelogOpen(open);
-              if (open) {
-                markChangelogRead();
-                setChangelogUnread(false);
+          <div className="flex items-center  py-1 text-[10px] uppercase tracking-wider font-bold text-white/30 hover:text-primary transition-colors">
+            <SecurityInfo
+              open={securityOpen}
+              onOpenChange={setSecurityOpen}
+              trigger={
+                <button className="flex items-center gap-1.5 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-white/30 hover:text-primary transition-colors">
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  <span className="hidden md:inline">Security Overview</span>
+                </button>
               }
-            }}
-            trigger={
-              <button className="flex items-center gap-1.5 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-white/30 hover:text-primary transition-colors relative">
-                <span className="relative">
-                  <Bell className="h-3.5 w-3.5" />
-                  {changelogUnread && (
-                    <span className="absolute -top-1 -right-1">
-                      <span className="block w-1.5 h-1.5 rounded-full bg-primary" />
-                      <span className="absolute inset-0 w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
-                    </span>
-                  )}
-                </span>
-                <span className="hidden md:inline">Changelog</span>
-              </button>
-            }
-          />
+            />
 
-          <GitHubLink showLabel />
+            <Terms
+              open={termsOpen}
+              onOpenChange={setTermsOpen}
+              trigger={
+                <button className="flex items-center gap-1.5 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-white/30 hover:text-primary transition-colors">
+                  <FileText className="h-3.5 w-3.5" />
+                  <span className="hidden md:inline">Terms of Service</span>
+                </button>
+              }
+            />
+
+            <Privacy
+              open={privacyOpen}
+              onOpenChange={setPrivacyOpen}
+              trigger={
+                <button className="flex items-center gap-1.5 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-white/30 hover:text-primary transition-colors">
+                  <Eye className="h-3.5 w-3.5" />
+                  <span className="hidden md:inline">Privacy Policy</span>
+                </button>
+              }
+            />
+
+            <ApiEncryption
+              open={apiEncryptionOpen}
+              onOpenChange={setApiEncryptionOpen}
+              trigger={
+                <button className="flex items-center gap-1.5 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-white/30 hover:text-primary transition-colors">
+                  <Code className="h-3.5 w-3.5" />
+                  <span className="hidden md:inline">API</span>
+                </button>
+              }
+            />
+
+            <Changelog
+              open={changelogOpen}
+              onOpenChange={(open) => {
+                setChangelogOpen(open);
+                if (open) {
+                  markChangelogRead();
+                  setChangelogUnread(false);
+                }
+              }}
+              trigger={
+                <button className="flex items-center gap-1.5 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-white/30 hover:text-primary transition-colors relative">
+                  <span className="relative">
+                    <Bell className="h-3.5 w-3.5" />
+                    {changelogUnread && (
+                      <span className="absolute -top-1 -right-1">
+                        <span className="block w-1.5 h-1.5 rounded-full bg-primary" />
+                        <span className="absolute inset-0 w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
+                      </span>
+                    )}
+                  </span>
+                  <span className="hidden md:inline">Changelog</span>
+                </button>
+              }
+            />
+
+            <GitHubLink showLabel />
+          </div>
 
           {showByteCounter && (
             <div className="items-center ml-auto gap-1.5 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-white/30 hidden sm:flex">

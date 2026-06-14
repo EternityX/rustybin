@@ -7,7 +7,7 @@
 @layer base {
   :root,
   .dark {
-    --radius: 0.5rem;
+    --radius: 2rem;
 
     --background: 231 15% 9%;
     --foreground: 220 13% 91%;
@@ -54,11 +54,13 @@
 @layer base {
   * {
     @apply border-border;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
   }
 
   body {
     @apply bg-background text-foreground;
-    background-image: radial-gradient(rgba(255, 255, 255, 0.0125) 1px, transparent 1px);
+    background-image: radial-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px);
     background-size: 7px 7px;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
@@ -126,6 +128,12 @@
   background-clip: text;
   -webkit-text-fill-color: transparent;
   color: transparent;
+}
+
+.brand-dots {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.0125) 1px, transparent 1px);
+  background-size: 7px 7px;
+  font-feature-settings: "rlig" 1, "calt" 1;
 }
 
 /* Prevent Radix Select from hiding the scrollbar */

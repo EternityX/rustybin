@@ -2,8 +2,19 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import {
-  Copy, Check, Flame, Clock, Save, Trash2, Eye, Code,
-  Plus, Loader2, Pencil, Columns,
+  Copy,
+  Check,
+  Flame,
+  Clock,
+  Save,
+  Trash2,
+  Eye,
+  Code,
+  Plus,
+  Loader2,
+  Pencil,
+  Columns,
+  Calendar,
 } from "lucide-react";
 
 import {
@@ -12,7 +23,9 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import { WorkspaceSidebar } from "@/components/workspace/WorkspaceSidebar";
-import PasteTextArea, { type PasteTextAreaHandle } from "@/components/paste/PasteTextArea";
+import PasteTextArea, {
+  type PasteTextAreaHandle,
+} from "@/components/paste/PasteTextArea";
 import MarkdownToolbar from "@/components/paste/MarkdownToolbar";
 import { MarkdownViewer } from "@/components/paste/MarkdownViewer";
 import { Button } from "@/components/ui/button";
@@ -41,8 +54,18 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 
 import { arrayMove } from "@dnd-kit/sortable";
-import type { WorkspaceBundle, WorkspaceFile, WorkspaceNode } from "@/lib/workspace-types";
-import { createEmptyBundle, countFiles, validateBundle, MAX_WORKSPACE_FILES, MAX_BUNDLE_SIZE } from "@/lib/workspace-types";
+import type {
+  WorkspaceBundle,
+  WorkspaceFile,
+  WorkspaceNode,
+} from "@/lib/workspace-types";
+import {
+  createEmptyBundle,
+  countFiles,
+  validateBundle,
+  MAX_WORKSPACE_FILES,
+  MAX_BUNDLE_SIZE,
+} from "@/lib/workspace-types";
 import { processDroppedFiles } from "@/lib/file-drop";
 import {
   createWorkspace,
@@ -79,7 +102,9 @@ export default function Workspace() {
   const [encryptionKey, setEncryptionKey] = useState<string | null>(null);
   const [editKey, setEditKey] = useState<string | null>(null);
   const [markdownView, setMarkdownView] = useState(true);
-  const [previewMode, setPreviewMode] = useState<"write" | "preview" | "split">("write");
+  const [previewMode, setPreviewMode] = useState<"write" | "preview" | "split">(
+    "write",
+  );
   const editorRef = useRef<PasteTextAreaHandle>(null);
 
   const [burnAfterRead, setBurnAfterRead] = useState(false);
@@ -87,7 +112,10 @@ export default function Workspace() {
 
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [shareUrls, setShareUrls] = useState<{ readOnly: string; editable: string } | null>(null);
+  const [shareUrls, setShareUrls] = useState<{
+    readOnly: string;
+    editable: string;
+  } | null>(null);
   const [copiedView, setCopiedView] = useState(false);
   const [copiedEdit, setCopiedEdit] = useState(false);
 
@@ -95,7 +123,7 @@ export default function Workspace() {
   const isEditable = isNewWorkspace || !!editKey;
 
   const files: WorkspaceFile[] = bundle.tree.filter(
-    (n): n is WorkspaceFile => n.type === "file"
+    (n): n is WorkspaceFile => n.type === "file",
   );
   const selectedFile = files[selectedIndex];
   const isMarkdown = selectedFile?.language === "markdown";
@@ -120,11 +148,13 @@ export default function Workspace() {
         setSelectedIndex(0);
       } catch (error) {
         if (error instanceof PasteError) {
-          toast.error(error.code === "NOT_FOUND"
-            ? "Workspace not found or has expired"
-            : error.code === "DECRYPTION_FAILED"
-              ? "Failed to decrypt workspace"
-              : error.message);
+          toast.error(
+            error.code === "NOT_FOUND"
+              ? "Workspace not found or has expired"
+              : error.code === "DECRYPTION_FAILED"
+                ? "Failed to decrypt workspace"
+                : error.message,
+          );
         } else {
           toast.error("Failed to load workspace");
         }
@@ -135,19 +165,24 @@ export default function Workspace() {
     loadWorkspace();
   }, [id]);
 
-  const handleContentChange = useCallback((content: string) => {
-    setBundle((prev) => {
-      const fileNodes = prev.tree.filter((n): n is WorkspaceFile => n.type === "file");
-      if (fileNodes[selectedIndex]) {
-        fileNodes[selectedIndex] = { ...fileNodes[selectedIndex], content };
-      }
-      let fileIdx = 0;
-      const updatedTree: WorkspaceNode[] = prev.tree.map((node) =>
-        node.type === "file" ? fileNodes[fileIdx++] : node
-      );
-      return { ...prev, tree: updatedTree };
-    });
-  }, [selectedIndex]);
+  const handleContentChange = useCallback(
+    (content: string) => {
+      setBundle((prev) => {
+        const fileNodes = prev.tree.filter(
+          (n): n is WorkspaceFile => n.type === "file",
+        );
+        if (fileNodes[selectedIndex]) {
+          fileNodes[selectedIndex] = { ...fileNodes[selectedIndex], content };
+        }
+        let fileIdx = 0;
+        const updatedTree: WorkspaceNode[] = prev.tree.map((node) =>
+          node.type === "file" ? fileNodes[fileIdx++] : node,
+        );
+        return { ...prev, tree: updatedTree };
+      });
+    },
+    [selectedIndex],
+  );
 
   const handleAddFile = useCallback(() => {
     const fileCount = countFiles(bundle.tree);
@@ -164,128 +199,164 @@ export default function Workspace() {
 
   const handleRenameFile = useCallback((index: number, newName: string) => {
     setBundle((prev) => {
-      const fileNodes = prev.tree.filter((n): n is WorkspaceFile => n.type === "file");
+      const fileNodes = prev.tree.filter(
+        (n): n is WorkspaceFile => n.type === "file",
+      );
       if (fileNodes[index]) {
         fileNodes[index] = { ...fileNodes[index], name: newName };
       }
       let fileIdx = 0;
       const updatedTree: WorkspaceNode[] = prev.tree.map((node) =>
-        node.type === "file" ? fileNodes[fileIdx++] : node
+        node.type === "file" ? fileNodes[fileIdx++] : node,
       );
       return { ...prev, tree: updatedTree };
     });
     setEditingIndex(null);
   }, []);
 
-  const handleFileLanguageChange = useCallback((index: number, language: string) => {
-    setBundle((prev) => {
-      const fileNodes = prev.tree.filter((n): n is WorkspaceFile => n.type === "file");
-      if (fileNodes[index]) {
-        fileNodes[index] = { ...fileNodes[index], language };
-      }
-      let fileIdx = 0;
-      const updatedTree: WorkspaceNode[] = prev.tree.map((node) =>
-        node.type === "file" ? fileNodes[fileIdx++] : node
-      );
-      return { ...prev, tree: updatedTree };
-    });
-  }, []);
-
-  const handleDeleteFile = useCallback((index: number) => {
-    if (files.length <= 1) {
-      toast.error("Cannot delete the last file");
-      return;
-    }
-    setBundle((prev) => {
-      const fileNodes = prev.tree.filter((n): n is WorkspaceFile => n.type === "file");
-      fileNodes.splice(index, 1);
-      // Rebuild tree keeping only remaining files (and any folders)
-      let fileIdx = 0;
-      const updatedTree: WorkspaceNode[] = [];
-      for (const node of prev.tree) {
-        if (node.type === "file") {
-          if (fileIdx < fileNodes.length) {
-            updatedTree.push(fileNodes[fileIdx++]);
-          }
-        } else {
-          updatedTree.push(node);
+  const handleFileLanguageChange = useCallback(
+    (index: number, language: string) => {
+      setBundle((prev) => {
+        const fileNodes = prev.tree.filter(
+          (n): n is WorkspaceFile => n.type === "file",
+        );
+        if (fileNodes[index]) {
+          fileNodes[index] = { ...fileNodes[index], language };
         }
+        let fileIdx = 0;
+        const updatedTree: WorkspaceNode[] = prev.tree.map((node) =>
+          node.type === "file" ? fileNodes[fileIdx++] : node,
+        );
+        return { ...prev, tree: updatedTree };
+      });
+    },
+    [],
+  );
+
+  const handleDeleteFile = useCallback(
+    (index: number) => {
+      if (files.length <= 1) {
+        toast.error("Cannot delete the last file");
+        return;
       }
-      return { ...prev, tree: updatedTree };
-    });
-    // Adjust selection
-    if (selectedIndex >= files.length - 1) {
-      setSelectedIndex(Math.max(0, files.length - 2));
-    }
-    toast.success("File removed");
-  }, [files.length, selectedIndex]);
+      setBundle((prev) => {
+        const fileNodes = prev.tree.filter(
+          (n): n is WorkspaceFile => n.type === "file",
+        );
+        fileNodes.splice(index, 1);
+        // Rebuild tree keeping only remaining files (and any folders)
+        let fileIdx = 0;
+        const updatedTree: WorkspaceNode[] = [];
+        for (const node of prev.tree) {
+          if (node.type === "file") {
+            if (fileIdx < fileNodes.length) {
+              updatedTree.push(fileNodes[fileIdx++]);
+            }
+          } else {
+            updatedTree.push(node);
+          }
+        }
+        return { ...prev, tree: updatedTree };
+      });
+      // Adjust selection
+      if (selectedIndex >= files.length - 1) {
+        setSelectedIndex(Math.max(0, files.length - 2));
+      }
+      toast.success("File removed");
+    },
+    [files.length, selectedIndex],
+  );
 
-  const handleReorderFiles = useCallback((oldIndex: number, newIndex: number) => {
-    setBundle((prev) => {
-      const fileNodes = prev.tree.filter((n): n is WorkspaceFile => n.type === "file");
-      const reordered = arrayMove(fileNodes, oldIndex, newIndex);
-      let fileIdx = 0;
-      const updatedTree: WorkspaceNode[] = prev.tree.map((node) =>
-        node.type === "file" ? reordered[fileIdx++] : node
-      );
-      return { ...prev, tree: updatedTree };
-    });
-    // Update selected index to follow the selected file
-    if (selectedIndex === oldIndex) {
-      setSelectedIndex(newIndex);
-    } else if (selectedIndex > oldIndex && selectedIndex <= newIndex) {
-      setSelectedIndex(selectedIndex - 1);
-    } else if (selectedIndex < oldIndex && selectedIndex >= newIndex) {
-      setSelectedIndex(selectedIndex + 1);
-    }
-  }, [selectedIndex]);
+  const handleReorderFiles = useCallback(
+    (oldIndex: number, newIndex: number) => {
+      setBundle((prev) => {
+        const fileNodes = prev.tree.filter(
+          (n): n is WorkspaceFile => n.type === "file",
+        );
+        const reordered = arrayMove(fileNodes, oldIndex, newIndex);
+        let fileIdx = 0;
+        const updatedTree: WorkspaceNode[] = prev.tree.map((node) =>
+          node.type === "file" ? reordered[fileIdx++] : node,
+        );
+        return { ...prev, tree: updatedTree };
+      });
+      // Update selected index to follow the selected file
+      if (selectedIndex === oldIndex) {
+        setSelectedIndex(newIndex);
+      } else if (selectedIndex > oldIndex && selectedIndex <= newIndex) {
+        setSelectedIndex(selectedIndex - 1);
+      } else if (selectedIndex < oldIndex && selectedIndex >= newIndex) {
+        setSelectedIndex(selectedIndex + 1);
+      }
+    },
+    [selectedIndex],
+  );
 
-  const handleFileDrop = useCallback(async (droppedFiles: File[]) => {
-    const result = await processDroppedFiles(droppedFiles);
+  const handleFileDrop = useCallback(
+    async (droppedFiles: File[]) => {
+      const result = await processDroppedFiles(droppedFiles);
 
-    for (const rejected of result.rejected) {
-      toast.error(`${rejected.name}: ${rejected.reason}`);
-    }
+      for (const rejected of result.rejected) {
+        toast.error(`${rejected.name}: ${rejected.reason}`);
+      }
 
-    if (result.files.length === 0) return;
+      if (result.files.length === 0) return;
 
-    const currentFileCount = countFiles(bundle.tree);
-    const remainingSlots = MAX_WORKSPACE_FILES - currentFileCount;
+      const currentFileCount = countFiles(bundle.tree);
+      const remainingSlots = MAX_WORKSPACE_FILES - currentFileCount;
 
-    if (remainingSlots <= 0) {
-      toast.error(`Workspace is full (${MAX_WORKSPACE_FILES} files maximum)`);
-      return;
-    }
+      if (remainingSlots <= 0) {
+        toast.error(`Workspace is full (${MAX_WORKSPACE_FILES} files maximum)`);
+        return;
+      }
 
-    let filesToAdd = result.files;
-    if (filesToAdd.length > remainingSlots) {
-      toast.warning(`Only ${remainingSlots} of ${filesToAdd.length} files were added (workspace limit: ${MAX_WORKSPACE_FILES} files)`);
-      filesToAdd = filesToAdd.slice(0, remainingSlots);
-    }
+      let filesToAdd = result.files;
+      if (filesToAdd.length > remainingSlots) {
+        toast.warning(
+          `Only ${remainingSlots} of ${filesToAdd.length} files were added (workspace limit: ${MAX_WORKSPACE_FILES} files)`,
+        );
+        filesToAdd = filesToAdd.slice(0, remainingSlots);
+      }
 
-    const currentBundleSize = new TextEncoder().encode(JSON.stringify(bundle)).length;
-    const accepted: WorkspaceFile[] = [];
-    let runningSize = currentBundleSize;
-
-    for (const file of filesToAdd) {
-      const entrySize = new TextEncoder().encode(
-        JSON.stringify({ type: "file", name: file.name, language: file.language, content: file.content })
+      const currentBundleSize = new TextEncoder().encode(
+        JSON.stringify(bundle),
       ).length;
-      if (runningSize + entrySize > MAX_BUNDLE_SIZE) {
-        toast.error(`${file.name} skipped — would exceed workspace size limit`);
-        continue;
+      const accepted: WorkspaceFile[] = [];
+      let runningSize = currentBundleSize;
+
+      for (const file of filesToAdd) {
+        const entrySize = new TextEncoder().encode(
+          JSON.stringify({
+            type: "file",
+            name: file.name,
+            language: file.language,
+            content: file.content,
+          }),
+        ).length;
+        if (runningSize + entrySize > MAX_BUNDLE_SIZE) {
+          toast.error(
+            `${file.name} skipped — would exceed workspace size limit`,
+          );
+          continue;
+        }
+        runningSize += entrySize;
+        accepted.push({
+          type: "file",
+          name: file.name,
+          language: file.language,
+          content: file.content,
+        });
       }
-      runningSize += entrySize;
-      accepted.push({ type: "file", name: file.name, language: file.language, content: file.content });
-    }
 
-    if (accepted.length === 0) return;
+      if (accepted.length === 0) return;
 
-    const prevFileCount = files.length;
-    setBundle((prev) => ({ ...prev, tree: [...prev.tree, ...accepted] }));
-    setSelectedIndex(prevFileCount);
-    toast.success(`${accepted.length} file(s) imported`);
-  }, [bundle, files.length]);
+      const prevFileCount = files.length;
+      setBundle((prev) => ({ ...prev, tree: [...prev.tree, ...accepted] }));
+      setSelectedIndex(prevFileCount);
+      toast.success(`${accepted.length} file(s) imported`);
+    },
+    [bundle, files.length],
+  );
 
   const handleSave = useCallback(async () => {
     const validation = validateBundle(bundle);
@@ -294,35 +365,61 @@ export default function Workspace() {
       return;
     }
     setIsLoading(true);
-    const loadingToast = toast.loading(isSaved ? "Updating workspace..." : "Saving workspace...");
+    const loadingToast = toast.loading(
+      isSaved ? "Updating workspace..." : "Saving workspace...",
+    );
     try {
       if (isSaved && id && encryptionKey && editKey) {
         await updateWorkspace(id, bundle, encryptionKey, editKey);
         toast.dismiss(loadingToast);
         toast.success("Workspace updated!");
       } else {
-        const expMinutes = expiresInMinutes !== "never" ? parseInt(expiresInMinutes) : null;
-        const result = await createWorkspace(bundle, { burnAfterRead, expiresInMinutes: expMinutes });
+        const expMinutes =
+          expiresInMinutes !== "never" ? parseInt(expiresInMinutes) : null;
+        const result = await createWorkspace(bundle, {
+          burnAfterRead,
+          expiresInMinutes: expMinutes,
+        });
         toast.dismiss(loadingToast);
         const origin = window.location.origin;
-        setShareUrls({ readOnly: `${origin}${result.readOnlyUrl}`, editable: `${origin}${result.url}` });
+        setShareUrls({
+          readOnly: `${origin}${result.readOnlyUrl}`,
+          editable: `${origin}${result.url}`,
+        });
         setShareDialogOpen(true);
-        await navigator.clipboard.writeText(`${origin}${result.readOnlyUrl}`).catch(() => {});
+        await navigator.clipboard
+          .writeText(`${origin}${result.readOnlyUrl}`)
+          .catch(() => {});
         if (!burnAfterRead) {
           navigate(result.url, { replace: true });
           setIsSaved(true);
           setEditKey(result.editKey);
         } else {
-          toast.success("Workspace created! URL copied. It will be deleted after first view.");
+          toast.success(
+            "Workspace created! URL copied. It will be deleted after first view.",
+          );
         }
       }
     } catch (error) {
       toast.dismiss(loadingToast);
-      toast.error(error instanceof PasteError ? error.message : "Failed to save workspace");
+      toast.error(
+        error instanceof PasteError
+          ? error.message
+          : "Failed to save workspace",
+      );
     } finally {
       setIsLoading(false);
     }
-  }, [bundle, isSaved, id, encryptionKey, editKey, burnAfterRead, expiresInMinutes, navigate]);
+  }, [
+    bundle,
+    isSaved,
+    id,
+    encryptionKey,
+    editKey,
+    burnAfterRead,
+    expiresInMinutes,
+    navigate,
+  ]);
 
   const handleDelete = useCallback(async () => {
     if (!id || !editKey) return;
@@ -336,7 +433,11 @@ export default function Workspace() {
       navigate("/");
     } catch (error) {
       toast.dismiss(loadingToast);
-      toast.error(error instanceof PasteError ? error.message : "Failed to delete workspace");
+      toast.error(
+        error instanceof PasteError
+          ? error.message
+          : "Failed to delete workspace",
+      );
     } finally {
       setIsLoading(false);
     }
@@ -345,15 +446,28 @@ export default function Workspace() {
   const copyUrl = async (url: string, type: "view" | "edit") => {
     try {
       await navigator.clipboard.writeText(url);
-      if (type === "view") { setCopiedView(true); setTimeout(() => setCopiedView(false), 2000); }
-      else { setCopiedEdit(true); setTimeout(() => setCopiedEdit(false), 2000); }
-    } catch { toast.error("Failed to copy to clipboard"); }
+      if (type === "view") {
+        setCopiedView(true);
+        setTimeout(() => setCopiedView(false), 2000);
+      } else {
+        setCopiedEdit(true);
+        setTimeout(() => setCopiedEdit(false), 2000);
+      }
+    } catch {
+      toast.error("Failed to copy to clipboard");
+    }
   };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "s" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); if (isEditable) handleSave(); }
-      if (e.key === "o" && (e.metaKey || e.ctrlKey)) { e.preventDefault(); navigate("/"); }
+      if (e.key === "s" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        if (isEditable) handleSave();
+      }
+      if (e.key === "o" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        navigate("/");
+      }
     };
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
@@ -363,7 +477,9 @@ export default function Workspace() {
     return (
       <div className="flex items-center justify-center h-screen bg-[#0F1014] text-muted-foreground">
         <Loader2 className="h-5 w-5 animate-spin mr-2 text-primary" />
-        <span className="text-[10px] uppercase tracking-wider font-bold text-white/70">Loading workspace...</span>
+        <span className="text-[10px] uppercase tracking-wider font-bold text-white/70">
+          Loading workspace...
+        </span>
       </div>
     );
   }
@@ -398,14 +514,18 @@ export default function Workspace() {
             >
               <span className="group text-[12px] uppercase tracking-wider font-bold transition-colors">
                 <span className="brand-gradient">foxy</span>
-                <span className="text-[12px] uppercase tracking-wider font-bold text-white group-hover:text-white/50 transition-colors">bin</span>
+                <span className="text-[12px] uppercase tracking-wider font-bold text-white group-hover:text-white/50 transition-colors">
+                  bin
+                </span>
               </span>
             </Link>
 
             {isLoading && (
               <div className="hidden sm:flex items-center text-xs text-muted-foreground bg-[#0F1014] border-[1px] border-[#20222a] px-2 py-0.5 shrink-0">
                 <Loader2 className="h-3 w-3 animate-spin mr-1.5 text-primary" />
-                <span className="text-[10px] uppercase tracking-wider font-bold text-white/70">saving...</span>
+                <span className="text-[10px] uppercase tracking-wider font-bold text-white/70">
+                  saving...
+                </span>
               </div>
             )}
 
@@ -423,15 +543,28 @@ export default function Workspace() {
             {selectedFile && isEditable && (
               <Select
                 value={selectedFile.language}
-                onValueChange={(lang) => handleFileLanguageChange(selectedIndex, lang)}
+                onValueChange={(lang) =>
+                  handleFileLanguageChange(selectedIndex, lang)
+                }
               >
                 <SelectTrigger className="h-[21px] w-[90px] sm:w-[120px] text-[10px] uppercase tracking-wider font-bold bg-[#0F1014]/0 border-[#20222a] rounded shrink-0">
-                  <SelectValue>{getLanguageLabel(selectedFile.language)}</SelectValue>
+                  <SelectValue>
+                    {getLanguageLabel(selectedFile.language)}
+                  </SelectValue>
                 </SelectTrigger>
                 <SelectContent className="bg-[#0F1014] border-[#20222a] rounded max-h-[400px]">
-                  <SelectItem value="none" className="text-[10px] uppercase tracking-wider font-bold">plain text</SelectItem>
+                  <SelectItem
+                    value="none"
+                    className="text-[10px] uppercase tracking-wider font-bold"
+                  >
+                    plain text
+                  </SelectItem>
                   {languageOptions.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value} className="text-[10px] uppercase tracking-wider font-bold">
+                    <SelectItem
+                      key={opt.value}
+                      value={opt.value}
+                      className="text-[10px] uppercase tracking-wider font-bold"
+                    >
                       {opt.label}
                     </SelectItem>
                   ))}
@@ -445,7 +578,17 @@ export default function Workspace() {
                 onClick={() => setMarkdownView(!markdownView)}
                 className="flex items-center gap-1 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-white/50 hover:text-primary transition-colors shrink-0"
               >
-                {markdownView ? <><Code className="h-3.5 w-3.5" /> <span className="hidden sm:inline">source</span></> : <><Eye className="h-3.5 w-3.5" /> <span className="hidden sm:inline">preview</span></>}
+                {markdownView ? (
+                  <>
+                    <Code className="h-3.5 w-3.5" />{" "}
+                    <span className="hidden sm:inline">source</span>
+                  </>
+                ) : (
+                  <>
+                    <Eye className="h-3.5 w-3.5" />{" "}
+                    <span className="hidden sm:inline">preview</span>
+                  </>
+                )}
               </button>
             )}
 
@@ -465,7 +608,9 @@ export default function Workspace() {
                   ) : (
                     <Save className="h-3.5 w-3.5 sm:hidden" />
                   )}
-                  <span className="hidden sm:inline">{isSaved ? "update" : "save"}</span>
+                  <span className="hidden sm:inline">
+                    {isSaved ? "update" : "save"}
+                  </span>
                 </span>
               </button>
             )}
@@ -491,11 +636,23 @@ export default function Workspace() {
               {/* Markdown toolbar + preview toggle */}
               {isMarkdown && isEditable && selectedFile && (
                 <>
-                  <MarkdownToolbar editorRef={editorRef} text={selectedFile.content} setText={handleContentChange} />
+                  <MarkdownToolbar
+                    editorRef={editorRef}
+                    text={selectedFile.content}
+                    setText={handleContentChange}
+                  />
                   <div className="flex items-center gap-0.5 border-l border-white/10 pl-2 flex-shrink-0">
                     {(["write", "preview", "split"] as const).map((mode) => {
-                      const icons = { write: Pencil, preview: Eye, split: Columns };
-                      const labels = { write: "Write", preview: "Preview", split: "Split" };
+                      const icons = {
+                        write: Pencil,
+                        preview: Eye,
+                        split: Columns,
+                      };
+                      const labels = {
+                        write: "Write",
+                        preview: "Preview",
+                        split: "Split",
+                      };
                       const Icon = icons[mode];
                       return (
                         <Button
@@ -503,12 +660,16 @@ export default function Workspace() {
                           variant="ghost"
                           size="sm"
                           className={`h-6 gap-1 text-[10px] uppercase rounded tracking-wider font-bold transition-colors flex-shrink-0 ${
-                            previewMode === mode ? "text-primary" : "text-white/40 hover:text-primary"
+                            previewMode === mode
+                              ? "text-primary"
+                              : "text-white/40 hover:text-primary"
                           }`}
                           onClick={() => setPreviewMode(mode)}
                         >
                           <Icon className="h-3.5 w-3.5" />
-                          <span className="hidden sm:inline">{labels[mode]}</span>
+                          <span className="hidden sm:inline">
+                            {labels[mode]}
+                          </span>
                         </Button>
                       );
                     })}
@@ -522,7 +683,9 @@ export default function Workspace() {
                     <Tooltip>
                       <TooltipTrigger asChild>
                         <div className="flex items-center gap-1">
-                          <Flame className={`h-3.5 w-3.5 ${burnAfterRead ? "text-primary" : "text-white/50"}`} />
+                          <Flame
+                            className={`h-3.5 w-3.5 ${burnAfterRead ? "text-primary" : "text-white/50"}`}
+                          />
                           <Switch
                             id="burn"
                             checked={burnAfterRead}
@@ -531,20 +694,32 @@ export default function Workspace() {
                           />
                         </div>
                       </TooltipTrigger>
-                      <TooltipContent side="bottom" className="rounded border border-white/10 bg-black/20 backdrop-blur-sm text-[10px] uppercase tracking-wider font-bold text-white/50">
+                      <TooltipContent
+                        side="bottom"
+                        className="rounded border border-white/10 bg-black/20 backdrop-blur-sm text-[10px] uppercase tracking-wider font-bold text-white/50"
+                      >
                         Burn after read
                       </TooltipContent>
                     </Tooltip>
 
                     <div className="flex items-center gap-1">
-                      <Clock className={`h-3.5 w-3.5 ${expiresInMinutes !== "never" ? "text-primary" : "text-white/50"}`} />
-                      <Select value={expiresInMinutes} onValueChange={setExpiresInMinutes}>
-                        <SelectTrigger className="h-[21px] w-[100px] sm:w-[120px] text-[10px] uppercase tracking-wider font-bold bg-[#0F1014]/0 border-[#20222a] rounded">
+                      <Calendar
+                        className={`h-3.5 w-3.5 ${expiresInMinutes !== "never" ? "text-primary" : "text-white/50"}`}
+                      />
+                      <Select
+                        value={expiresInMinutes}
+                        onValueChange={setExpiresInMinutes}
+                      >
+                        <SelectTrigger className="h-[21px] w-[120px] text-[10px] uppercase tracking-wider font-bold border-white/10 rounded">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent className="bg-[#0F1014] border-[#20222a] rounded">
                           {EXPIRATION_OPTIONS.map((opt) => (
-                            <SelectItem key={opt.value} value={opt.value} className="text-[10px] uppercase tracking-wider font-bold">
+                            <SelectItem
+                              key={opt.value}
+                              value={opt.value}
+                              className="text-[10px] uppercase tracking-wider font-bold"
+                            >
                               {opt.label}
                             </SelectItem>
                           ))}
@@ -620,7 +795,9 @@ export default function Workspace() {
         <DialogContent className="sm:max-w-md bg-[#0F1014] border-[1px] border-[#20222a] rounded">
           <DialogHeader>
             <DialogTitle>Workspace created</DialogTitle>
-            <DialogDescription className="text-white/50">Choose a URL to share.</DialogDescription>
+            <DialogDescription className="text-white/50">
+              Choose a URL to share.
+            </DialogDescription>
           </DialogHeader>
 
           {(burnAfterRead || expiresInMinutes !== "never") && (
@@ -641,7 +818,10 @@ export default function Workspace() {
           <div className="space-y-4">
             <div className="space-y-2">
               <label className="text-white text-sm font-medium flex items-center gap-2">
-                Read-only URL <span className="text-xs text-white/50">(recommended for sharing)</span>
+                Read-only URL{" "}
+                <span className="text-xs text-white/50">
+                  (recommended for sharing)
+                </span>
               </label>
               <div className="flex items-center gap-2">
                 <Input
@@ -650,15 +830,27 @@ export default function Workspace() {
                   className="flex-1 bg-[#0F1014] border-[#20222a] text-xs font-mono text-white"
                   onFocus={(e) => e.target.select()}
                 />
-                <Button variant="default" onClick={() => shareUrls && copyUrl(shareUrls.readOnly, "view")}
-                  className="h-10 w-10 bg-[#0F1014] border-[1px] border-[#20222a] rounded hover:bg-[#0F1014] hover:text-primary">
-                  {copiedView ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                <Button
+                  variant="default"
+                  onClick={() =>
+                    shareUrls && copyUrl(shareUrls.readOnly, "view")
+                  }
+                  className="h-10 w-10 bg-[#0F1014] border-[1px] border-[#20222a] rounded hover:bg-[#0F1014] hover:text-primary"
+                >
+                  {copiedView ? (
+                    <Check className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
             </div>
             <div className="space-y-2">
               <label className="text-white text-sm font-medium flex items-center gap-2">
-                Editable URL <span className="text-xs text-amber-300">(people with this link can edit the workspace)</span>
+                Editable URL{" "}
+                <span className="text-xs text-amber-300">
+                  (people with this link can edit the workspace)
+                </span>
               </label>
               <div className="flex items-center gap-2">
                 <Input
@@ -667,16 +859,27 @@ export default function Workspace() {
                   className="flex-1 bg-[#0F1014] border-[#20222a] text-xs font-mono text-white"
                   onFocus={(e) => e.target.select()}
                 />
-                <Button variant="default" onClick={() => shareUrls && copyUrl(shareUrls.editable, "edit")}
-                  className="h-10 w-10 bg-[#0F1014] border-[1px] border-[#20222a] rounded hover:bg-[#0F1014] hover:text-primary">
-                  {copiedEdit ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
+                <Button
+                  variant="default"
+                  onClick={() =>
+                    shareUrls && copyUrl(shareUrls.editable, "edit")
+                  }
+                  className="h-10 w-10 bg-[#0F1014] border-[1px] border-[#20222a] rounded hover:bg-[#0F1014] hover:text-primary"
+                >
+                  {copiedEdit ? (
+                    <Check className="h-4 w-4 text-green-500" />
+                  ) : (
+                    <Copy className="h-4 w-4" />
+                  )}
                 </Button>
               </div>
             </div>
           </div>
           <DialogFooter>
             <div className="bg-amber-500/10 border border-amber-500/20 p-3 text-xs text-amber-200/80 italic">
-              <strong>Important:</strong> Since we don't save your decryption key, we cannot recover your data if you lose the link. Please keep your URLs safe.
+              <strong>Important:</strong> Since we don't save your decryption
+              key, we cannot recover your data if you lose the link. Please keep
+              your URLs safe.
             </div>
           </DialogFooter>
         </DialogContent>
@@ -688,15 +891,24 @@ export default function Workspace() {
           <DialogHeader>
             <DialogTitle>Delete workspace</DialogTitle>
             <DialogDescription className="text-white/50">
-              Are you sure you want to delete this workspace? This action cannot be undone.
+              Are you sure you want to delete this workspace? This action cannot
+              be undone.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}
-              className="bg-[#0F1014] border-[1px] border-[#20222a] rounded hover:bg-[#0F1014] hover:text-primary">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+              className="bg-[#0F1014] border-[1px] border-[#20222a] rounded hover:bg-[#0F1014] hover:text-primary"
+            >
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={isLoading} className="rounded">
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={isLoading}
+              className="rounded"
+            >
               {isLoading ? "Deleting..." : "Delete"}
             </Button>
           </DialogFooter>

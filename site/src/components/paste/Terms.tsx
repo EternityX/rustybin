@@ -20,7 +20,9 @@ const Terms: React.FC<TermsProps> = ({ trigger, open, onOpenChange }) => {
     <DialogContent className="sm:max-w-2xl bg-[#0F1014] border-[1px] border-[#20222a] rounded overflow-y-auto max-h-[90vh]">
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2 text-xl">
-          <span className="icon-tile h-7 w-7 shrink-0"><FileText className="h-4 w-4" /></span>
+          <span className="icon-tile h-7 w-7 shrink-0">
+            <FileText className="h-4 w-4" />
+          </span>
           Terms of Service
         </DialogTitle>
         <DialogDescription className="text-white/50 text-base">
@@ -34,7 +36,9 @@ const Terms: React.FC<TermsProps> = ({ trigger, open, onOpenChange }) => {
             <h3>1. Acceptable Use</h3>
           </div>
           <p className="text-sm text-white/70 leading-relaxed">
-            You are solely responsible for all content you upload, download, or share through the Service. You agree not to use the Service for any illegal or harmful purposes.
+            You are solely responsible for all content you upload, download, or
+            share through the Service. You agree not to use the Service for any
+            illegal or harmful purposes.
           </p>
         </section>
 
@@ -46,10 +50,25 @@ const Terms: React.FC<TermsProps> = ({ trigger, open, onOpenChange }) => {
             The following types of content are strictly prohibited:
           </p>
           <ul className="list-disc text-sm text-white/70 leading-relaxed pl-6">
-            <li><span className="font-bold">Child Exploitation:</span>{" "}Links to videos, images, or audio depicting abuse or inappropriate touching of minors. Any such content will be removed and reported to the National Center for Missing and Exploited Children.</li>
-            <li><span className="font-bold">Terrorism:</span>{" "}Text or links to content that promotes or glorifies acts of terrorism.</li>
-            <li><span className="font-bold">Extreme Gore:</span>{" "}Links to graphic and shocking content depicting severe harm to humans or animals.</li>
-            <li><span className="font-bold">Doxing:</span>{" "}Posting private information about an individual or organization with malicious intent.</li>
+            <li>
+              <span className="font-bold">Child Exploitation:</span> Links to
+              videos, images, or audio depicting abuse or inappropriate touching
+              of minors. Any such content will be removed and reported to the
+              National Center for Missing and Exploited Children.
+            </li>
+            <li>
+              <span className="font-bold">Terrorism:</span> Text or links to
+              content that promotes or glorifies acts of terrorism.
+            </li>
+            <li>
+              <span className="font-bold">Extreme Gore:</span> Links to graphic
+              and shocking content depicting severe harm to humans or animals.
+            </li>
+            <li>
+              <span className="font-bold">Doxing:</span> Posting private
+              information about an individual or organization with malicious
+              intent.
+            </li>
           </ul>
         </section>
 
@@ -58,7 +77,8 @@ const Terms: React.FC<TermsProps> = ({ trigger, open, onOpenChange }) => {
             <h3>3. Content Removal</h3>
           </div>
           <p className="text-sm text-white/70 leading-relaxed">
-            We reserve the right to remove any content that violates these terms, or that we deem harmful or inappropriate.
+            We reserve the right to remove any content that violates these
+            terms, or that we deem harmful or inappropriate.
           </p>
         </section>
 
@@ -67,7 +87,15 @@ const Terms: React.FC<TermsProps> = ({ trigger, open, onOpenChange }) => {
             <h3>4. Reporting Abuse</h3>
           </div>
           <p className="text-sm text-white/70 leading-relaxed">
-            If you believe that a paste violates these terms, please report it to <a href="mailto:admin@deadcell.software" className="text-primary hover:underline">admin@deadcell.software</a>.
+            If you believe that a paste violates these terms, please report it
+            to{" "}
+            <a
+              href="mailto:admin@deadcell.software"
+              className="text-primary hover:underline"
+            >
+              admin@deadcell.software
+            </a>
+            .
           </p>
         </section>
 
@@ -76,7 +104,8 @@ const Terms: React.FC<TermsProps> = ({ trigger, open, onOpenChange }) => {
             <h3>5. Disclaimer</h3>
           </div>
           <p className="text-sm text-white/70 leading-relaxed">
-            The Service is provided "as is" without any warranties. We are not liable for any damages arising from your use of the Service.
+            The Service is provided "as is" without any warranties. We are not
+            liable for any damages arising from your use of the Service.
           </p>
         </section>
 
@@ -85,13 +114,15 @@ const Terms: React.FC<TermsProps> = ({ trigger, open, onOpenChange }) => {
             <h3>6. Changes</h3>
           </div>
           <p className="text-sm text-white/70 leading-relaxed">
-            We may update these terms at any time. Your continued use of the Service constitutes acceptance of any changes.
+            We may update these terms at any time. Your continued use of the
+            Service constitutes acceptance of any changes.
           </p>
         </section>
       </div>
 
       <div className="bg-amber-500/10 border border-amber-500/20 p-3 text-xs text-amber-200/80 italic">
-        By using the Service, you acknowledge that you have read and understood these terms.
+        By using the Service, you acknowledge that you have read and understood
+        these terms.
       </div>
     </DialogContent>
   );
