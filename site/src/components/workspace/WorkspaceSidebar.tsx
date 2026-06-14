@@ -14,7 +14,10 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { restrictToVerticalAxis, restrictToParentElement } from "@dnd-kit/modifiers";
+import {
+  restrictToVerticalAxis,
+  restrictToParentElement,
+} from "@dnd-kit/modifiers";
 import {
   Sidebar,
   SidebarContent,
@@ -62,18 +65,20 @@ export function WorkspaceSidebar({
   const fileCount = countFiles(tree);
 
   const files = tree.filter(
-    (node): node is WorkspaceFile => node.type === "file"
+    (node): node is WorkspaceFile => node.type === "file",
   );
 
   // Stable sortable IDs
   const sortableIds = useMemo(
     () => files.map((_, i) => `file-${i}`),
-    [files.length]
+    [files.length],
   );
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
   );
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -95,21 +100,16 @@ export function WorkspaceSidebar({
             to="/"
             className="text-[12px] uppercase tracking-wider font-bold truncate"
           >
-            <span className="text-primary">rusty</span>
-            <span className="text-white hover:text-white/50 transition-colors">bin</span>
+            <span className="text-foreground">Rustybin</span>
           </Link>
           <div className="text-[10px] text-white/60 uppercase tracking-wider font-bold">
             Workspace
           </div>
         </div>
         <SidebarGroup className="p-0">
-
           {isEditable && (
             <SidebarGroupContent>
-              <WorkspaceToolbar
-                fileCount={fileCount}
-                onAddFile={onAddFile}
-              />
+              <WorkspaceToolbar fileCount={fileCount} onAddFile={onAddFile} />
             </SidebarGroupContent>
           )}
         </SidebarGroup>
@@ -141,7 +141,9 @@ export function WorkspaceSidebar({
                       canDelete={files.length > 1}
                       onSelect={() => onSelectFile(index)}
                       onRename={(newName) => onRenameFile(index, newName)}
-                      onLanguageChange={(lang) => onFileLanguageChange(index, lang)}
+                      onLanguageChange={(lang) =>
+                        onFileLanguageChange(index, lang)
+                      }
                       onStartRename={() => onStartRename(index)}
                       onDelete={() => onDeleteFile(index)}
                     />

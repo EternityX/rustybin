@@ -30,3 +30,7 @@ Thumbs.db
 .claude/
 .specify/
 specs/
+.superpowers/
+
+# Keep superpowers design docs tracked even though `specs/` is ignored above
+!docs/superpowers/specs/

@@ -7,6 +7,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Bell } from "lucide-react";
 
 interface ChangelogEntry {
   date: string;
@@ -16,11 +17,17 @@ interface ChangelogEntry {
 
 const CHANGELOG: ChangelogEntry[] = [
   {
+    date: "2026-06-12",
+    version: "0.4.0",
+    changes: [
+      "Improved layout with a sidebar",
+      "Fixed some design inconsistencies",
+    ],
+  },
+  {
     date: "2026-03-26",
     version: "0.3.0",
-    changes: [
-      "Added drag & drop file import for pastes",
-    ],
+    changes: ["Added drag & drop file import for pastes"],
   },
   {
     date: "2026-03-20",
@@ -62,11 +69,18 @@ interface ChangelogProps {
   onOpenChange?: (open: boolean) => void;
 }
 
-const Changelog: React.FC<ChangelogProps> = ({ trigger, open, onOpenChange }) => {
+const Changelog: React.FC<ChangelogProps> = ({
+  trigger,
+  open,
+  onOpenChange,
+}) => {
   const content = (
-    <DialogContent className="max-w-sm sm:max-w-2xl bg-[#0A0A0A] border-[1px] border-[#222222] rounded overflow-y-auto max-h-[90vh]">
+    <DialogContent className="max-w-sm sm:max-w-2xl bg-popover border-[1px] border-border rounded overflow-y-auto max-h-[90vh]">
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2 text-xl">
+          <span className="icon-tile h-7 w-7 shrink-0">
+            <Bell className="h-4 w-4" />
+          </span>
           Changelog
         </DialogTitle>
         <DialogDescription className="text-white/50 text-base">
@@ -94,7 +108,10 @@ const Changelog: React.FC<ChangelogProps> = ({ trigger, open, onOpenChange }) =>
             </div>
             <ul className="space-y-1">
               {entry.changes.map((change, j) => (
-                <li key={j} className="text-sm text-white/70 leading-relaxed flex gap-2">
+                <li
+                  key={j}
+                  className="text-sm text-white/70 leading-relaxed flex gap-2"
+                >
                   <span className="text-white/30 select-none">-</span>
                   <span>{change}</span>
                 </li>

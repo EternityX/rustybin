@@ -7,7 +7,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Key, Lock, Send, Link, Shield, FileCode, Gauge, Loader2 } from "lucide-react";
+import { Key, Lock, Send, Link, Shield, FileCode, Gauge, Loader2, Code } from "lucide-react";
 import { highlightWithPrism } from "@/utils/prism-utils";
 
 const CodeBlock = ({ code, language }: { code: string; language: string }) => {
@@ -60,7 +60,7 @@ const encryptedBase64 = combined.toString('base64');
 
 // Create paste via API
 const response = await fetch(
-  'https://api.rustybin.net/v1/pastes',
+  '__API_URL__/v1/pastes',
   {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -72,7 +72,7 @@ const response = await fetch(
 );
 
 const result = await response.json();
-console.log(\`URL: https://rustybin.net/\${result.id}#\${keyBase64}\`);`;
+console.log(\`URL: __SITE_URL__/\${result.id}#\${keyBase64}\`);`;
 
 const PY_ENCRYPT_EXAMPLE = `import os, base64, requests
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
@@ -92,7 +92,7 @@ encrypted_base64 = base64.b64encode(combined).decode()
 
 # Create paste via API
 response = requests.post(
-    'https://api.rustybin.net/v1/pastes',
+    '__API_URL__/v1/pastes',
     json={
         'data': encrypted_base64,
         'language': 'python'
@@ -100,7 +100,7 @@ response = requests.post(
 )
 
 result = response.json()
-print(f"URL: https://rustybin.net/{result['id']}#{key_base64}")`;
+print(f"URL: __SITE_URL__/{result['id']}#{key_base64}")`;
 
 const JS_DECRYPT_EXAMPLE = `import crypto from 'crypto';
 
@@ -109,7 +109,7 @@ const keyBase64 = '...'; // from URL fragment
 
 // Fetch encrypted paste
 const res = await fetch(
-  \`https://api.rustybin.net/v1/pastes/\${pasteId}\`
+  \`__API_URL__/v1/pastes/\${pasteId}\`
 );
 const paste = await res.json();
 
@@ -139,7 +139,7 @@ key_base64 = '...'  # from URL fragment
 
 # Fetch encrypted paste
 response = requests.get(
-    f'https://api.rustybin.net/v1/pastes/{paste_id}'
+    f'__API_URL__/v1/pastes/{paste_id}'
 )
 paste = response.json()
 
@@ -157,7 +157,7 @@ plaintext = aesgcm.decrypt(iv, ciphertext_and_tag, None)
 
 print(plaintext.decode())  # "Hello World!"`;
 
-const REQUEST_EXAMPLE = `POST https://api.rustybin.net/v1/pastes
+const REQUEST_EXAMPLE = `POST __API_URL__/v1/pastes
 Content-Type: application/json
 
 {
@@ -182,10 +182,21 @@ const ApiEncryption: React.FC<ApiEncryptionProps> = ({ trigger, open, onOpenChan
       .finally(() => setRateLimitsLoading(false));
   }, [open]);
 
+  // Derive the documented URLs from the current address bar; the API always
+  // lives at the `api.` subdomain of whatever host the app is served from.
+  const siteUrl = typeof window !== "undefined" ? window.location.origin : "";
+  const apiUrl =
+    typeof window !== "undefined"
+      ? `${window.location.protocol}//api.${window.location.host}`
+      : "";
+  const fill = (s: string) =>
+    s.split("__API_URL__").join(apiUrl).split("__SITE_URL__").join(siteUrl);
+
   const content = (
-    <DialogContent className="max-w-sm sm:max-w-2xl bg-[#0A0A0A] border-[1px] border-[#222222] rounded overflow-y-auto max-h-[90vh]">
+    <DialogContent className="max-w-sm sm:max-w-2xl bg-popover border-[1px] border-border rounded overflow-y-auto max-h-[90vh]">
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2 text-xl">
+          <span className="icon-tile h-7 w-7 shrink-0"><Code className="h-4 w-4" /></span>
           API & Encryption Guide
         </DialogTitle>
         <DialogDescription className="text-white/50 text-base">
@@ -275,7 +286,7 @@ const ApiEncryption: React.FC<ApiEncryptionProps> = ({ trigger, open, onOpenChan
           <p className="text-sm text-white/70 leading-relaxed">
             Send a <span className="font-mono text-white/80">POST</span> request to <span className="font-mono text-white/80">/v1/pastes</span>:
           </p>
-          <CodeBlock code={REQUEST_EXAMPLE} language="json" />
+          <CodeBlock code={fill(REQUEST_EXAMPLE)} language="json" />
         </section>
 
         <section className="space-y-3">
@@ -287,7 +298,7 @@ const ApiEncryption: React.FC<ApiEncryptionProps> = ({ trigger, open, onOpenChan
             The API returns a paste ID. Construct the shareable URL with the key in the fragment (never sent to the server):
           </p>
           <div className="bg-white/5 border border-white/10 rounded p-2 text-xs font-mono text-white/70 text-center">
-            https://rustybin.net/<span className="text-primary">{`{paste_id}`}</span>#<span className="text-green-400">{`{key_base64}`}</span>
+            {siteUrl}/<span className="text-primary">{`{paste_id}`}</span>#<span className="text-green-400">{`{key_base64}`}</span>
           </div>
         </section>
 
@@ -296,7 +307,7 @@ const ApiEncryption: React.FC<ApiEncryptionProps> = ({ trigger, open, onOpenChan
             <FileCode className="h-4 w-4" />
             <h3>JavaScript Example</h3>
           </div>
-          <CodeBlock code={JS_ENCRYPT_EXAMPLE} language="javascript" />
+          <CodeBlock code={fill(JS_ENCRYPT_EXAMPLE)} language="javascript" />
         </section>
 
         <section className="space-y-3">
@@ -304,7 +315,7 @@ const ApiEncryption: React.FC<ApiEncryptionProps> = ({ trigger, open, onOpenChan
             <FileCode className="h-4 w-4" />
             <h3>Python Example</h3>
           </div>
-          <CodeBlock code={PY_ENCRYPT_EXAMPLE} language="python" />
+          <CodeBlock code={fill(PY_ENCRYPT_EXAMPLE)} language="python" />
         </section>
 
         <section className="space-y-3">
@@ -329,7 +340,7 @@ const ApiEncryption: React.FC<ApiEncryptionProps> = ({ trigger, open, onOpenChan
             <FileCode className="h-4 w-4" />
             <h3>Decryption - JavaScript</h3>
           </div>
-          <CodeBlock code={JS_DECRYPT_EXAMPLE} language="javascript" />
+          <CodeBlock code={fill(JS_DECRYPT_EXAMPLE)} language="javascript" />
         </section>
 
         <section className="space-y-3">
@@ -337,7 +348,7 @@ const ApiEncryption: React.FC<ApiEncryptionProps> = ({ trigger, open, onOpenChan
             <FileCode className="h-4 w-4" />
             <h3>Decryption - Python</h3>
           </div>
-          <CodeBlock code={PY_DECRYPT_EXAMPLE} language="python" />
+          <CodeBlock code={fill(PY_DECRYPT_EXAMPLE)} language="python" />
         </section>
       </div>
 
@@ -365,7 +376,7 @@ const ApiEncryption: React.FC<ApiEncryptionProps> = ({ trigger, open, onOpenChan
           <span className="font-mono text-white/60 text-xs">base64( KEM_ciphertext[1568] || IV[12] || AES_ciphertext )</span>
         </p>
         <div className="bg-white/5 border border-white/10 rounded p-2 text-xs font-mono text-white/70 text-center">
-          https://rustybin.net/<span className="text-primary">{`{id}`}</span>#q:<span className="text-green-400">{`{base64url_decapsulation_key}`}</span>
+          {siteUrl}/<span className="text-primary">{`{id}`}</span>#q:<span className="text-green-400">{`{base64url_decapsulation_key}`}</span>
         </div>
         <p className="text-sm text-white/70 leading-relaxed">
           To decrypt a quantum paste programmatically: extract the <span className="font-mono text-white/80">q:</span> prefix

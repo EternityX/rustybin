@@ -6,6 +6,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Eye } from "lucide-react";
 
 interface PrivacyProps {
   trigger?: React.ReactNode;
@@ -15,9 +16,10 @@ interface PrivacyProps {
 
 const Privacy: React.FC<PrivacyProps> = ({ trigger, open, onOpenChange }) => {
   const content = (
-    <DialogContent className="sm:max-w-2xl bg-[#0A0A0A] border-[1px] border-[#222222] rounded overflow-y-auto max-h-[90vh]">
+    <DialogContent className="sm:max-w-2xl bg-popover border-[1px] border-border rounded overflow-y-auto max-h-[90vh]">
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2 text-xl">
+          <span className="icon-tile h-7 w-7 shrink-0"><Eye className="h-4 w-4" /></span>
           Privacy Policy
         </DialogTitle>
       </DialogHeader>
@@ -28,7 +30,7 @@ const Privacy: React.FC<PrivacyProps> = ({ trigger, open, onOpenChange }) => {
             <h3>Data we collect</h3>
           </div>
           <p className="text-sm text-white/70 leading-relaxed">
-            Rustybin does not require personally identifiable information to use our service. To avoid providing Rustybin personal information, use Tor or a VPN, and follow basic OPSEC guidelines.
+            rustybin does not require personally identifiable information to use our service. To avoid providing rustybin personal information, use Tor or a VPN, and follow basic OPSEC guidelines.
           </p>
         </section>
 

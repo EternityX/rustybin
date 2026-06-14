@@ -29,7 +29,7 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-[#2D2D2D] flex items-center justify-center p-4">
+    <div className="min-h-screen bg-[#14151b] flex items-center justify-center p-4">
       <Card className="w-full max-w-sm border-border/50 bg-card rounded">
         <CardHeader className="text-center space-y-2">
           <div className="mx-auto w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">

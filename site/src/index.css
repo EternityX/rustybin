@@ -5,68 +5,37 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
-    
-    --foreground: 60 25% 98%;
-
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
-
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
-
-    --primary: 348 26% 60%;
-    --primary-foreground: 210 40% 98%;
-
-    --secondary: 280 5% 13%;
-    --secondary-foreground: 60 25% 98%;
-
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
-
-    --accent: 221 83% 95%;
-    --accent-foreground: 221 83% 53%;
-
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 348 26% 60%;
-    --input: 214 32% 91%;
-    --ring: 348 26% 60%;
-
-    --sidebar-background: 0 0% 98%;
-
-    --sidebar-foreground: 240 5.3% 26.1%;
-
-    --sidebar-primary: 240 5.9% 10%;
-
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
-  }
+  :root,
   .dark {
-    
+    --radius: 2rem;
+
+    --background: 0 0% 18%;
     --foreground: 348 26% 60%;
+
     --card: 240 10% 3.9%;
     --card-foreground: 0 0% 98%;
+
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
+
     --primary: 348 26% 60%;
     --primary-foreground: 210 40% 98%;
+
     --secondary: 348 26% 60%;
     --secondary-foreground: 0 0% 98%;
+
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
+
     --accent: 240 3.7% 15.9%;
     --accent-foreground: 0 0% 98%;
+
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
+
+    --success: 156 78% 34%;
+    --warning: 45 93% 47%;
+
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
     --ring: 348 26% 60%;
@@ -85,10 +54,14 @@
 @layer base {
   * {
     @apply border-border;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.15) transparent;
   }
 
   body {
-    @apply bg-[#2D2D2D] text-foreground;
+    @apply bg-background text-foreground;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    background-size: 7px 7px;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 
@@ -113,6 +86,29 @@
   @apply min-h-screen w-full;
 }
 
+/* button shine sweep */
+.btn-shine { position: relative; overflow: hidden; }
+.btn-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(120deg, transparent 35%, rgba(255, 255, 255, 0.22) 50%, transparent 65%);
+  transform: translateX(-120%);
+  transition: transform 0.6s ease;
+}
+.btn-shine:hover::after { transform: translateX(120%); }
+
+/* icon tile */
+.icon-tile {
+  display: inline-grid;
+  place-content: center;
+  border-radius: 0.75rem;
+  background: hsl(var(--primary) / 0.10);
+  border: 1px solid hsl(var(--primary) / 0.25);
+  color: hsl(var(--primary));
+}
+
 /* Apple Intelligence-style gradient */
 .text-rainbow {
   background: linear-gradient(90deg, #6ec2f7, #a982ed, #e68dc1, #f2a472);
@@ -123,6 +119,12 @@
 
 .icon-rainbow {
   color: #a982ed;
+}
+
+.brand-dots {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.0125) 1px, transparent 1px);
+  background-size: 7px 7px;
+  font-feature-settings: "rlig" 1, "calt" 1;
 }
 
 /* Prevent Radix Select from hiding the scrollbar */

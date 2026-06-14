@@ -25,7 +25,7 @@ export function AdminAuthGuard({ children }: AdminAuthGuardProps) {
 
   if (checking) {
     return (
-      <div className="flex items-center justify-center h-screen bg-[#2D2D2D]">
+      <div className="flex items-center justify-center h-screen bg-[#14151b]">
         <div className="flex items-center gap-2 text-xs uppercase text-white/50">
           <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
           Checking authentication

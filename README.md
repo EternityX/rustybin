@@ -252,6 +252,13 @@ pnpm build
 
 The built files will be in the `site/dist` directory, which can be served by the Rust backend.
 
+### Docker
+
+Rustybin runs as a single container — the backend serves the built SPA same-origin, so one image
+provides the API, UI, and SQLite storage.
+
+See **[DOCKER.md](DOCKER.md)** for the Docker / Docker Compose quickstart, GHCR images, and configuration.
+
 ## Cloudflare
 
 Please see the `site/DEPLOYMENT.md` to deploy on Cloudflare pages.

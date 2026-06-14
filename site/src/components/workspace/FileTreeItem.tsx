@@ -166,7 +166,7 @@ export function FileTreeItem({
             <DropdownMenuContent
               side="right"
               align="start"
-              className="w-36 bg-[#0A0A0A] border-[#222] rounded z-[9999]"
+              className="w-36 bg-popover border-border rounded z-[9999]"
             >
               <DropdownMenuItem
                 onClick={onStartRename}

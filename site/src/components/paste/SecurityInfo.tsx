@@ -17,13 +17,14 @@ interface SecurityInfoProps {
 
 const SecurityInfo: React.FC<SecurityInfoProps> = ({ trigger, open, onOpenChange }) => {
   const content = (
-    <DialogContent className="sm:max-w-2xl bg-[#0A0A0A] border-[1px] border-[#222222] rounded overflow-y-auto max-h-[90vh]">
+    <DialogContent className="sm:max-w-2xl bg-popover border-[1px] border-border rounded overflow-y-auto max-h-[90vh]">
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2 text-xl">
+          <span className="icon-tile h-7 w-7 shrink-0"><Shield className="h-4 w-4" /></span>
           Security Overview
         </DialogTitle>
         <DialogDescription className="text-white/50 text-base">
-          How Rustybin ensures your data remains private and unreadable by anyone but you or anyone you share the link with.
+          How rustybin ensures your data remains private and unreadable by anyone but you or anyone you share the link with.
         </DialogDescription>
       </DialogHeader>
 

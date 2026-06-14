@@ -50,7 +50,11 @@ type MarkdownToolbarProps = {
   setText: (text: string) => void;
 };
 
-const MarkdownToolbar: React.FC<MarkdownToolbarProps> = ({ editorRef, text, setText }) => {
+const MarkdownToolbar: React.FC<MarkdownToolbarProps> = ({
+  editorRef,
+  text,
+  setText,
+}) => {
   const handleAction = useCallback(
     (actionId: string) => {
       const textarea = editorRef.current?.getTextarea();
@@ -64,11 +68,23 @@ const MarkdownToolbar: React.FC<MarkdownToolbarProps> = ({ editorRef, text, setT
       if (action.isHeading) {
         result = cycleHeading(text, selectionStart);
       } else if (action.block) {
-        result = applyBlockFormat(text, selectionStart, selectionEnd, action.prefix, action.suffix);
+        result = applyBlockFormat(
+          text,
+          selectionStart,
+          selectionEnd,
+          action.prefix,
+          action.suffix,
+        );
       } else if (action.lineLevel) {
         result = applyLineFormat(text, selectionStart, action.prefix);
       } else {
-        result = applyInlineFormat(text, selectionStart, selectionEnd, action.prefix, action.suffix);
+        result = applyInlineFormat(
+          text,
+          selectionStart,
+          selectionEnd,
+          action.prefix,
+          action.suffix,
+        );
       }
 
       setText(result.newText);
@@ -82,7 +98,7 @@ const MarkdownToolbar: React.FC<MarkdownToolbarProps> = ({ editorRef, text, setT
   );
 
   return (
-    <div className="flex items-center gap-0.5 overflow-x-auto scrollbar-none">
+    <div className="flex items-center gap-0.5 overflow-x-auto scrollbar-none ml-1">
       {TOOLBAR_ACTIONS.map((action) => {
         const Icon = ICON_MAP[action.icon];
         if (!Icon) return null;
@@ -98,7 +114,10 @@ const MarkdownToolbar: React.FC<MarkdownToolbarProps> = ({ editorRef, text, setT
                 <Icon className="h-3.5 w-3.5" />
               </button>
             </TooltipTrigger>
-            <TooltipContent side="bottom" className="rounded border border-white/10 bg-black/90 backdrop-blur-sm text-[10px] uppercase tracking-wider font-bold text-white/70">
+            <TooltipContent
+              side="bottom"
+              className="rounded border border-white/10 bg-black/90 backdrop-blur-sm text-[10px] uppercase tracking-wider font-bold text-white/70"
+            >
               <p>{action.label}</p>
             </TooltipContent>
           </Tooltip>

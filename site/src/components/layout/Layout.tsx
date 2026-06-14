@@ -11,6 +11,7 @@ import {
   Code,
   Bell,
 } from "lucide-react";
+import { GitHubLink } from "@/components/layout/GitHubLink";
 import SecurityInfo from "@/components/paste/SecurityInfo";
 import { languageOptions, getLanguageLabel } from "@/utils/language-utils";
 import {
@@ -23,7 +24,10 @@ import {
 import Terms from "../paste/Terms";
 import Privacy from "../paste/Privacy";
 import ApiEncryption from "../paste/ApiEncryption";
-import Changelog, { hasUnreadChangelog, markChangelogRead } from "../paste/Changelog";
+import Changelog, {
+  hasUnreadChangelog,
+  markChangelogRead,
+} from "../paste/Changelog";
 
 type MainLayoutProps = {
   children: React.ReactNode;
@@ -71,7 +75,9 @@ const MainLayout = ({
   const [privacyOpen, setPrivacyOpen] = useState(false);
   const [apiEncryptionOpen, setApiEncryptionOpen] = useState(false);
   const [changelogOpen, setChangelogOpen] = useState(false);
-  const [changelogUnread, setChangelogUnread] = useState(() => hasUnreadChangelog());
+  const [changelogUnread, setChangelogUnread] = useState(() =>
+    hasUnreadChangelog(),
+  );
 
   // Check if API is available
   const [isApiAvailable, setIsApiAvailable] = useState(true);
@@ -132,24 +138,21 @@ const MainLayout = ({
 
   return (
     // Title bar
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-50 border-b bg-[#0F0F0F]">
+    <div className="flex h-screen overflow-hidden flex-col">
+      <header className="sticky top-0 z-50 border-b bg-[#0d0e11]">
         <div className="flex min-h-[35px] flex-col sm:flex-row sm:items-center sm:justify-between px-2 -mt-1 py-1 sm:py-0 sm:mt-0 gap-y-1">
           <div className="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
             <Link
               to="/"
               className="items-center gap-1 text-lg font-semibold transition-opacity hidden md:flex"
             >
-              <span className="group text-[12px] uppercase tracking-wider font-bold text-primary transition-colors">
-                <span className="">rusty</span>
-                <span className="text-[12px] uppercase tracking-wider font-bold text-white group-hover:text-white/50 transition-colors">
-                  bin
-                </span>
+              <span className="text-[12px] uppercase tracking-wider font-bold text-foreground transition-colors">
+                Rustybin
               </span>
             </Link>
             <div className="flex items-center gap-2">
               {isLoading && (
-                <div className="flex items-center text-xs text-muted-foreground bg-[#0A0A0A] border-[1px] border-[#222222] px-2 py-0.5 mt-0.5">
+                <div className="flex items-center text-xs text-muted-foreground bg-popover border-[1px] border-border px-2 py-0.5 mt-0.5">
                   <Loader2 className="h-3 w-3 animate-spin mr-1.5 text-primary" />
                   <span className="text-[10px] uppercase tracking-wider font-bold text-white/70">
                     saving...
@@ -157,7 +160,7 @@ const MainLayout = ({
                 </div>
               )}
               {isDetectingLanguage && !isLoading && (
-                <div className="flex items-center text-xs text-muted-foreground bg-[#0A0A0A] border-[1px] border-[#222222] px-2 py-0.5 mt-0.5">
+                <div className="flex items-center text-xs text-muted-foreground bg-popover border-[1px] border-border px-2 py-0.5 mt-0.5">
                   <Loader2 className="h-3 w-3 animate-spin mr-1.5 text-primary" />
                   <span className="text-[10px] uppercase tracking-wider font-bold text-white/70">
                     determining language...
@@ -175,10 +178,10 @@ const MainLayout = ({
                   onValueChange={setLanguage}
                   disabled={readOnly || isLoading}
                 >
-                  <SelectTrigger className="h-[21px] w-[120px] text-[10px] uppercase tracking-wider font-bold bg-[#0A0A0A]/0 border-[#222222] rounded mr-1">
+                  <SelectTrigger className="h-[21px] w-[120px] text-[10px] uppercase tracking-wider font-bold bg-popover/0 border-border rounded mr-1">
                     <SelectValue>{getLanguageLabel(language)}</SelectValue>
                   </SelectTrigger>
-                  <SelectContent className="bg-[#0A0A0A] border-[#222222] rounded max-h-[400px]">
+                  <SelectContent className="bg-popover border-border rounded max-h-[400px]">
                     {languageOptions.map((option) => (
                       <SelectItem
                         key={option.value}
@@ -209,7 +212,7 @@ const MainLayout = ({
                     }`}
                 >
                   {item.shortcut && (
-                    <span className="text-xs text-foreground bg-[#0A0A0A]/0 border rounded border-[#222222] px-1 py-[2px] font-mono hidden md:inline -mr-2">
+                    <span className="text-xs text-foreground bg-popover/0 border rounded border-border px-1 py-[2px] font-mono hidden md:inline -mr-2">
                       {item.shortcut}
                     </span>
                   )}
@@ -228,91 +231,124 @@ const MainLayout = ({
         {children}
       </main>
 
-      <footer className="sticky bottom-0 z-50 border-t border-white/10 bg-[#0F0F0F]">
-        <div className="flex min-h-[30px] items-center  py-1">
+      <footer className="sticky bottom-0 z-50 border-t border-white/10 bg-[#0d0e11]">
+        <div className="flex min-h-[30px] items-center ">
           {(() => {
             const isChecking = apiHealth === "checking";
-            const dotColor = isChecking ? "bg-white/30" : !isApiAvailable ? "bg-red-500" : apiHealth === "ok" ? "bg-green-500" : apiHealth === "degraded" ? "bg-amber-500" : "bg-orange-500";
-            const textColor = isChecking ? "text-white/30" : !isApiAvailable ? "text-red-500" : apiHealth === "ok" ? "text-green-500" : apiHealth === "degraded" ? "text-amber-500" : "text-orange-500";
-            const label = isChecking ? "checking" : !isApiAvailable ? "offline" : apiHealth === "ok" ? "online" : apiHealth === "degraded" ? "degraded" : "unhealthy";
+            const dotColor = isChecking
+              ? "bg-white/30"
+              : !isApiAvailable
+                ? "bg-red-500"
+                : apiHealth === "ok"
+                  ? "bg-green-500"
+                  : apiHealth === "degraded"
+                    ? "bg-amber-500"
+                    : "bg-orange-500";
+            const textColor = isChecking
+              ? "text-white/30"
+              : !isApiAvailable
+                ? "text-red-500"
+                : apiHealth === "ok"
+                  ? "text-green-500"
+                  : apiHealth === "degraded"
+                    ? "text-amber-500"
+                    : "text-orange-500";
+            const label = isChecking
+              ? "checking"
+              : !isApiAvailable
+                ? "offline"
+                : apiHealth === "ok"
+                  ? "online"
+                  : apiHealth === "degraded"
+                    ? "degraded"
+                    : "unhealthy";
             return (
-              <div className={`items-center gap-1.5 pl-2 pr-3 py-1 text-[10px] uppercase tracking-wider font-bold ${textColor} hidden sm:flex border-r mr-1.5 border-white/10`}>
-                <div className={`w-1.5 h-1.5 rounded-full ${dotColor} relative`}>
-                  <div className={`w-1.5 h-1.5 rounded-full ${dotColor} animate-ping`}></div>
+              <div
+                className={`items-center gap-1.5 pl-2 pr-3 py-1 text-[10px] uppercase tracking-wider font-bold ${textColor} hidden sm:flex border-r h-[30ritepx] mr-1.5 border-white/10`}
+              >
+                <div
+                  className={`w-1.5 h-1.5 rounded-full ${dotColor} relative`}
+                >
+                  <div
+                    className={`w-1.5 h-1.5 rounded-full ${dotColor} animate-ping`}
+                  ></div>
                 </div>
                 <span className="inline">{label}</span>
               </div>
             );
           })()}
-
-          <SecurityInfo
-            open={securityOpen}
-            onOpenChange={setSecurityOpen}
-            trigger={
-              <button className="flex items-center gap-1.5 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-white/30 hover:text-primary transition-colors">
-                <ShieldCheck className="h-3.5 w-3.5" />
-                <span className="hidden md:inline">Security Overview</span>
-              </button>
-            }
-          />
-
-          <Terms
-            open={termsOpen}
-            onOpenChange={setTermsOpen}
-            trigger={
-              <button className="flex items-center gap-1.5 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-white/30 hover:text-primary transition-colors">
-                <FileText className="h-3.5 w-3.5" />
-                <span className="hidden md:inline">Terms of Service</span>
-              </button>
-            }
-          />
-
-          <Privacy
-            open={privacyOpen}
-            onOpenChange={setPrivacyOpen}
-            trigger={
-              <button className="flex items-center gap-1.5 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-white/30 hover:text-primary transition-colors">
-                <Eye className="h-3.5 w-3.5" />
-                <span className="hidden md:inline">Privacy Policy</span>
-              </button>
-            }
-          />
-
-          <ApiEncryption
-            open={apiEncryptionOpen}
-            onOpenChange={setApiEncryptionOpen}
-            trigger={
-              <button className="flex items-center gap-1.5 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-white/30 hover:text-primary transition-colors">
-                <Code className="h-3.5 w-3.5" />
-                <span className="hidden md:inline">API</span>
-              </button>
-            }
-          />
-
-          <Changelog
-            open={changelogOpen}
-            onOpenChange={(open) => {
-              setChangelogOpen(open);
-              if (open) {
-                markChangelogRead();
-                setChangelogUnread(false);
+          <div className="flex items-center  py-1 text-[10px] uppercase tracking-wider font-bold text-white/30 hover:text-primary transition-colors">
+            <SecurityInfo
+              open={securityOpen}
+              onOpenChange={setSecurityOpen}
+              trigger={
+                <button className="flex items-center gap-1.5 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-white/30 hover:text-primary transition-colors">
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  <span className="hidden md:inline">Security Overview</span>
+                </button>
               }
-            }}
-            trigger={
-              <button className="flex items-center gap-1.5 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-white/30 hover:text-primary transition-colors relative">
-                <span className="relative">
-                  <Bell className="h-3.5 w-3.5" />
-                  {changelogUnread && (
-                    <span className="absolute -top-1 -right-1">
-                      <span className="block w-1.5 h-1.5 rounded-full bg-primary" />
-                      <span className="absolute inset-0 w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
-                    </span>
-                  )}
-                </span>
-                <span className="hidden md:inline">Changelog</span>
-              </button>
-            }
-          />
+            />
+
+            <Terms
+              open={termsOpen}
+              onOpenChange={setTermsOpen}
+              trigger={
+                <button className="flex items-center gap-1.5 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-white/30 hover:text-primary transition-colors">
+                  <FileText className="h-3.5 w-3.5" />
+                  <span className="hidden md:inline">Terms of Service</span>
+                </button>
+              }
+            />
+
+            <Privacy
+              open={privacyOpen}
+              onOpenChange={setPrivacyOpen}
+              trigger={
+                <button className="flex items-center gap-1.5 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-white/30 hover:text-primary transition-colors">
+                  <Eye className="h-3.5 w-3.5" />
+                  <span className="hidden md:inline">Privacy Policy</span>
+                </button>
+              }
+            />
+
+            <ApiEncryption
+              open={apiEncryptionOpen}
+              onOpenChange={setApiEncryptionOpen}
+              trigger={
+                <button className="flex items-center gap-1.5 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-white/30 hover:text-primary transition-colors">
+                  <Code className="h-3.5 w-3.5" />
+                  <span className="hidden md:inline">API</span>
+                </button>
+              }
+            />
+
+            <Changelog
+              open={changelogOpen}
+              onOpenChange={(open) => {
+                setChangelogOpen(open);
+                if (open) {
+                  markChangelogRead();
+                  setChangelogUnread(false);
+                }
+              }}
+              trigger={
+                <button className="flex items-center gap-1.5 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-white/30 hover:text-primary transition-colors relative">
+                  <span className="relative">
+                    <Bell className="h-3.5 w-3.5" />
+                    {changelogUnread && (
+                      <span className="absolute -top-1 -right-1">
+                        <span className="block w-1.5 h-1.5 rounded-full bg-primary" />
+                        <span className="absolute inset-0 w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
+                      </span>
+                    )}
+                  </span>
+                  <span className="hidden md:inline">Changelog</span>
+                </button>
+              }
+            />
+
+            <GitHubLink showLabel />
+          </div>
 
           {showByteCounter && (
             <div className="items-center ml-auto gap-1.5 px-2 py-1 text-[10px] uppercase tracking-wider font-bold text-white/30 hidden sm:flex">
