@@ -475,7 +475,7 @@ export default function Workspace() {
 
   if (isLoading && !isSaved && id) {
     return (
-      <div className="flex items-center justify-center h-screen bg-[#0F1014] text-muted-foreground">
+      <div className="flex items-center justify-center h-screen bg-popover text-muted-foreground">
         <Loader2 className="h-5 w-5 animate-spin mr-2 text-primary" />
         <span className="text-[10px] uppercase tracking-wider font-bold text-white/70">
           Loading workspace...
@@ -518,7 +518,7 @@ export default function Workspace() {
             </Link>
 
             {isLoading && (
-              <div className="hidden sm:flex items-center text-xs text-muted-foreground bg-[#0F1014] border-[1px] border-[#20222a] px-2 py-0.5 shrink-0">
+              <div className="hidden sm:flex items-center text-xs text-muted-foreground bg-popover border-[1px] border-border px-2 py-0.5 shrink-0">
                 <Loader2 className="h-3 w-3 animate-spin mr-1.5 text-primary" />
                 <span className="text-[10px] uppercase tracking-wider font-bold text-white/70">
                   saving...
@@ -544,12 +544,12 @@ export default function Workspace() {
                   handleFileLanguageChange(selectedIndex, lang)
                 }
               >
-                <SelectTrigger className="h-[21px] w-[90px] sm:w-[120px] text-[10px] uppercase tracking-wider font-bold bg-[#0F1014]/0 border-[#20222a] rounded shrink-0">
+                <SelectTrigger className="h-[21px] w-[90px] sm:w-[120px] text-[10px] uppercase tracking-wider font-bold bg-popover/0 border-border rounded shrink-0">
                   <SelectValue>
                     {getLanguageLabel(selectedFile.language)}
                   </SelectValue>
                 </SelectTrigger>
-                <SelectContent className="bg-[#0F1014] border-[#20222a] rounded max-h-[400px]">
+                <SelectContent className="bg-popover border-border rounded max-h-[400px]">
                   <SelectItem
                     value="none"
                     className="text-[10px] uppercase tracking-wider font-bold"
@@ -596,7 +596,7 @@ export default function Workspace() {
                 disabled={isLoading}
                 className="flex items-center gap-1 shrink-0 text-sm font-medium transition-colors !text-green-400 hover:!text-green-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <span className="text-xs text-foreground bg-[#0F1014]/0 border rounded border-[#20222a] px-1 py-[2px] font-mono hidden md:inline">
+                <span className="text-xs text-foreground bg-popover/0 border rounded border-border px-1 py-[2px] font-mono hidden md:inline">
                   ctrl+s
                 </span>
                 <span className="px-1 py-1 text-[10px] uppercase tracking-wider font-bold transition-colors">
@@ -710,7 +710,7 @@ export default function Workspace() {
                         <SelectTrigger className="h-[21px] w-[120px] text-[10px] uppercase tracking-wider font-bold border-white/10 rounded">
                           <SelectValue />
                         </SelectTrigger>
-                        <SelectContent className="bg-[#0F1014] border-[#20222a] rounded">
+                        <SelectContent className="bg-popover border-border rounded">
                           {EXPIRATION_OPTIONS.map((opt) => (
                             <SelectItem
                               key={opt.value}
@@ -789,7 +789,7 @@ export default function Workspace() {
 
       {/* Share Dialog */}
       <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
-        <DialogContent className="sm:max-w-md bg-[#0F1014] border-[1px] border-[#20222a] rounded">
+        <DialogContent className="sm:max-w-md bg-popover border-[1px] border-border rounded">
           <DialogHeader>
             <DialogTitle>Workspace created</DialogTitle>
             <DialogDescription className="text-white/50">
@@ -824,7 +824,7 @@ export default function Workspace() {
                 <Input
                   readOnly
                   value={shareUrls?.readOnly ?? ""}
-                  className="flex-1 bg-[#0F1014] border-[#20222a] text-xs font-mono text-white"
+                  className="flex-1 bg-popover border-border text-xs font-mono text-white"
                   onFocus={(e) => e.target.select()}
                 />
                 <Button
@@ -832,7 +832,7 @@ export default function Workspace() {
                   onClick={() =>
                     shareUrls && copyUrl(shareUrls.readOnly, "view")
                   }
-                  className="h-10 w-10 bg-[#0F1014] border-[1px] border-[#20222a] rounded hover:bg-[#0F1014] hover:text-primary"
+                  className="h-10 w-10 bg-popover border-[1px] border-border rounded hover:bg-popover hover:text-primary"
                 >
                   {copiedView ? (
                     <Check className="h-4 w-4 text-green-500" />
@@ -853,7 +853,7 @@ export default function Workspace() {
                 <Input
                   readOnly
                   value={shareUrls?.editable ?? ""}
-                  className="flex-1 bg-[#0F1014] border-[#20222a] text-xs font-mono text-white"
+                  className="flex-1 bg-popover border-border text-xs font-mono text-white"
                   onFocus={(e) => e.target.select()}
                 />
                 <Button
@@ -861,7 +861,7 @@ export default function Workspace() {
                   onClick={() =>
                     shareUrls && copyUrl(shareUrls.editable, "edit")
                   }
-                  className="h-10 w-10 bg-[#0F1014] border-[1px] border-[#20222a] rounded hover:bg-[#0F1014] hover:text-primary"
+                  className="h-10 w-10 bg-popover border-[1px] border-border rounded hover:bg-popover hover:text-primary"
                 >
                   {copiedEdit ? (
                     <Check className="h-4 w-4 text-green-500" />
@@ -884,7 +884,7 @@ export default function Workspace() {
 
       {/* Delete Workspace Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-md bg-[#0F1014] border-[1px] border-[#20222a] rounded">
+        <DialogContent className="sm:max-w-md bg-popover border-[1px] border-border rounded">
           <DialogHeader>
             <DialogTitle>Delete workspace</DialogTitle>
             <DialogDescription className="text-white/50">
@@ -896,7 +896,7 @@ export default function Workspace() {
             <Button
               variant="outline"
               onClick={() => setDeleteDialogOpen(false)}
-              className="bg-[#0F1014] border-[1px] border-[#20222a] rounded hover:bg-[#0F1014] hover:text-primary"
+              className="bg-popover border-[1px] border-border rounded hover:bg-popover hover:text-primary"
             >
               Cancel
             </Button>

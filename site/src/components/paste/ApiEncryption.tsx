@@ -193,7 +193,7 @@ const ApiEncryption: React.FC<ApiEncryptionProps> = ({ trigger, open, onOpenChan
     s.split("__API_URL__").join(apiUrl).split("__SITE_URL__").join(siteUrl);
 
   const content = (
-    <DialogContent className="max-w-sm sm:max-w-2xl bg-[#0F1014] border-[1px] border-[#20222a] rounded overflow-y-auto max-h-[90vh]">
+    <DialogContent className="max-w-sm sm:max-w-2xl bg-popover border-[1px] border-border rounded overflow-y-auto max-h-[90vh]">
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2 text-xl">
           <span className="icon-tile h-7 w-7 shrink-0"><Code className="h-4 w-4" /></span>

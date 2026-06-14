@@ -612,7 +612,7 @@ const Index: React.FC = () => {
                   <SelectTrigger className="h-[21px] w-[120px] text-[10px] uppercase tracking-wider font-bold border-white/10 rounded">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#0F1014] border-[#20222a] rounded">
+                  <SelectContent className="bg-popover border-border rounded">
                     {EXPIRATION_OPTIONS.map((option) => (
                       <SelectItem
                         key={option.value}
@@ -884,7 +884,7 @@ const Index: React.FC = () => {
                   <SelectTrigger className="h-[24px] w-[104px] text-[11px] bg-[#1a1b20] border-border rounded">
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-[#0F1014] border-border rounded">
+                  <SelectContent className="bg-popover border-border rounded">
                     {EXPIRATION_OPTIONS.map((option) => (
                       <SelectItem
                         key={option.value}
@@ -966,7 +966,7 @@ const Index: React.FC = () => {
 
       {/* Share Dialog */}
       <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
-        <DialogContent className="sm:max-w-md bg-[#0F1014] border-[1px] border-[#20222a] rounded">
+        <DialogContent className="sm:max-w-md bg-popover border-[1px] border-border rounded">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               Paste created with advanced options
@@ -1019,7 +1019,7 @@ const Index: React.FC = () => {
                 <Input
                   readOnly
                   value={shareData?.viewOnlyUrl ?? ""}
-                  className="flex-1 bg-[#0F1014] border-[#20222a] text-xs font-mono text-white"
+                  className="flex-1 bg-popover border-border text-xs font-mono text-white"
                   onFocus={(e) => e.target.select()}
                 />
                 <Button
@@ -1027,7 +1027,7 @@ const Index: React.FC = () => {
                   onClick={() =>
                     shareData && copyToClipboard(shareData.viewOnlyUrl, "view")
                   }
-                  className="h-10 w-10 bg-[#0F1014] border-[1px] border-[#20222a] rounded hover:bg-[#0F1014] hover:text-primary"
+                  className="h-10 w-10 bg-popover border-[1px] border-border rounded hover:bg-popover hover:text-primary"
                 >
                   {copiedView ? (
                     <Check className="h-4 w-4 text-green-500" />
@@ -1049,7 +1049,7 @@ const Index: React.FC = () => {
                 <Input
                   readOnly
                   value={shareData?.editableUrl ?? ""}
-                  className="flex-1 bg-[#0F1014] border-[#20222a] text-xs font-mono text-white"
+                  className="flex-1 bg-popover border-border text-xs font-mono text-white"
                   onFocus={(e) => e.target.select()}
                 />
                 <Button
@@ -1057,7 +1057,7 @@ const Index: React.FC = () => {
                   onClick={() =>
                     shareData && copyToClipboard(shareData.editableUrl, "edit")
                   }
-                  className="h-10 w-10 bg-[#0F1014] border-[1px] border-[#20222a] rounded hover:bg-[#0F1014] hover:text-primary"
+                  className="h-10 w-10 bg-popover border-[1px] border-border rounded hover:bg-popover hover:text-primary"
                 >
                   {copiedEdit ? (
                     <Check className="h-4 w-4 text-green-500" />
@@ -1080,7 +1080,7 @@ const Index: React.FC = () => {
 
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-md bg-[#0F1014] border-[1px] border-[#20222a] rounded">
+        <DialogContent className="sm:max-w-md bg-popover border-[1px] border-border rounded">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               Delete paste
@@ -1095,7 +1095,7 @@ const Index: React.FC = () => {
             <Button
               variant="outline"
               onClick={() => setDeleteDialogOpen(false)}
-              className="bg-[#0F1014] border-[1px] border-[#20222a] rounded hover:bg-[#0F1014] hover:text-primary"
+              className="bg-popover border-[1px] border-border rounded hover:bg-popover hover:text-primary"
             >
               Cancel
             </Button>

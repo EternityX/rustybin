@@ -17,7 +17,7 @@ interface SecurityInfoProps {
 
 const SecurityInfo: React.FC<SecurityInfoProps> = ({ trigger, open, onOpenChange }) => {
   const content = (
-    <DialogContent className="sm:max-w-2xl bg-[#0F1014] border-[1px] border-[#20222a] rounded overflow-y-auto max-h-[90vh]">
+    <DialogContent className="sm:max-w-2xl bg-popover border-[1px] border-border rounded overflow-y-auto max-h-[90vh]">
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2 text-xl">
           <span className="icon-tile h-7 w-7 shrink-0"><Shield className="h-4 w-4" /></span>
