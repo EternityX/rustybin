@@ -6,8 +6,10 @@ describe("Prism theme defaults", () => {
     localStorage.clear();
   });
 
-  it("does not register a custom Foxyz theme", () => {
-    expect(prismThemes.find((t) => t.value === "prism-foxyz")).toBeUndefined();
+  it("registers no custom-source theme (the removed orange editor theme)", () => {
+    expect(
+      prismThemes.find((t) => (t as { source?: string }).source === "custom"),
+    ).toBeUndefined();
   });
 
   it("includes the stock Tomorrow Night theme", () => {
