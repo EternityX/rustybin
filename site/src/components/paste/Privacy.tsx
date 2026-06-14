@@ -30,7 +30,7 @@ const Privacy: React.FC<PrivacyProps> = ({ trigger, open, onOpenChange }) => {
             <h3>Data we collect</h3>
           </div>
           <p className="text-sm text-white/70 leading-relaxed">
-            foxybin does not require personally identifiable information to use our service. To avoid providing foxybin personal information, use Tor or a VPN, and follow basic OPSEC guidelines.
+            rustybin does not require personally identifiable information to use our service. To avoid providing rustybin personal information, use Tor or a VPN, and follow basic OPSEC guidelines.
           </p>
         </section>
 

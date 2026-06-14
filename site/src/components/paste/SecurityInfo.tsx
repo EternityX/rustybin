@@ -24,7 +24,7 @@ const SecurityInfo: React.FC<SecurityInfoProps> = ({ trigger, open, onOpenChange
           Security Overview
         </DialogTitle>
         <DialogDescription className="text-white/50 text-base">
-          How foxybin ensures your data remains private and unreadable by anyone but you or anyone you share the link with.
+          How rustybin ensures your data remains private and unreadable by anyone but you or anyone you share the link with.
         </DialogDescription>
       </DialogHeader>
 

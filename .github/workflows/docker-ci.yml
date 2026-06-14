@@ -7,7 +7,7 @@ on:
   push:
     branches:
       - main
-      - 003-foxybin-redesign
+      - 004-rustybin-restore
     paths:
       - "Dockerfile"
       - ".dockerignore"

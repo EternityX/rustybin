@@ -86,7 +86,7 @@
   @apply min-h-screen w-full;
 }
 
-/* foxyz button shine sweep */
+/* button shine sweep */
 .btn-shine { position: relative; overflow: hidden; }
 .btn-shine::after {
   content: "";
@@ -99,7 +99,7 @@
 }
 .btn-shine:hover::after { transform: translateX(120%); }
 
-/* foxyz orange icon tile */
+/* icon tile */
 .icon-tile {
   display: inline-grid;
   place-content: center;

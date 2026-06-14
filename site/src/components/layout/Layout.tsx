@@ -146,11 +146,8 @@ const MainLayout = ({
               to="/"
               className="items-center gap-1 text-lg font-semibold transition-opacity hidden md:flex"
             >
-              <span className="group text-[12px] uppercase tracking-wider font-bold transition-colors">
-                <span className="brand-gradient">foxy</span>
-                <span className="text-[12px] uppercase tracking-wider font-bold text-white group-hover:text-white/50 transition-colors">
-                  bin
-                </span>
+              <span className="text-[12px] uppercase tracking-wider font-bold text-foreground transition-colors">
+                Rustybin
               </span>
             </Link>
             <div className="flex items-center gap-2">

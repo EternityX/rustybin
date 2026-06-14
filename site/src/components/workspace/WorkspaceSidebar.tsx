@@ -100,10 +100,7 @@ export function WorkspaceSidebar({
             to="/"
             className="text-[12px] uppercase tracking-wider font-bold truncate"
           >
-            <span className="text-primary">foxy</span>
-            <span className="text-white hover:text-white/50 transition-colors">
-              bin
-            </span>
+            <span className="text-foreground">Rustybin</span>
           </Link>
           <div className="text-[10px] text-white/60 uppercase tracking-wider font-bold">
             Workspace

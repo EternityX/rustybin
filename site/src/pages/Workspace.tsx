@@ -512,11 +512,8 @@ export default function Workspace() {
               to="/"
               className="items-center shrink-0 -ml-1 text-lg font-semibold transition-opacity flex md:hidden"
             >
-              <span className="group text-[12px] uppercase tracking-wider font-bold transition-colors">
-                <span className="brand-gradient">foxy</span>
-                <span className="text-[12px] uppercase tracking-wider font-bold text-white group-hover:text-white/50 transition-colors">
-                  bin
-                </span>
+              <span className="text-[12px] uppercase tracking-wider font-bold text-foreground transition-colors">
+                Rustybin
               </span>
             </Link>
 
