@@ -53,4 +53,20 @@ describe("PasteTextArea line numbers", () => {
     const editor = container.querySelector(".editor-container") as HTMLElement;
     expect(editor.style.marginLeft).toBe("0px");
   });
+
+  // Regression guard: the gutter must grow to the editor content height and not clip.
+  // A viewport-clamped gutter (`absolute top-0 bottom-0` + `overflow-hidden`) sized
+  // itself to the scroll viewport, so once the editor scrolled the clipped gutter
+  // moved off-screen and line numbers vanished for the lower lines. It must use
+  // `min-h-full` (grow with content) and must not clip.
+  it("sizes the gutter to the content so line numbers scroll all the way down", () => {
+    const { container } = render(
+      <PasteTextArea text={"a\nb\nc"} setText={noop} language="none" />,
+    );
+    const gutter = container.querySelector('[data-testid="line-numbers"]') as HTMLElement;
+    expect(gutter).not.toBeNull();
+    expect(gutter.className).toContain("min-h-full");
+    expect(gutter.className).not.toContain("overflow-hidden");
+    expect(gutter.className).not.toContain("bottom-0");
+  });
 });

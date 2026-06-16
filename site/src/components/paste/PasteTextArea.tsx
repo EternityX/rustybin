@@ -261,7 +261,7 @@ const PasteTextArea = forwardRef<PasteTextAreaHandle, PasteTextAreaProps>(
       return (
         <div
           data-testid="line-numbers"
-          className="absolute left-0 top-0 bottom-0 w-12 text-sm pt-3 select-none overflow-hidden pointer-events-none z-[1]"
+          className="absolute left-0 top-0 w-12 min-h-full text-sm pt-3 select-none pointer-events-none z-[1]"
           style={{
             backgroundColor: lineNumberBgColor,
             color: lineNumberColor,
