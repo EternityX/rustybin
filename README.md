@@ -38,8 +38,6 @@ See how Rustybin stacks up against other popular paste services:
 | **Drag & drop file import** | ✅ | ✅ | ⚠️ Requires account | ✅ | ❌ |
 
 ## Features
-
-### Core
 - **End-to-End Encryption**: Client-side AES-256-GCM encryption — the server never sees your paste contents
 - **Zero-Knowledge Architecture**: Decryption keys stay in the URL fragment (#) and are never sent to the server
 - **Quantum-Resistant Encryption**: Optional ML-KEM-1024 (CRYSTALS-Kyber) hybrid encryption to protect pastes from future quantum computing attacks
@@ -50,25 +48,6 @@ See how Rustybin stacks up against other popular paste services:
 - **RESTful API**: Full API for creating, retrieving, updating, and deleting pastes
 - **SQLite Database**: Lightweight, file-based database for storing encrypted pastes
 - **Modern Design**: Clean, dark-themed UI built with React, TypeScript, and Tailwind CSS
-
-### Advanced Features
-Enable advanced options when creating a paste:
-- **Burn After Read**: Paste is automatically deleted after being viewed once
-- **Expiration**: Set pastes to auto-delete after a specified time (5 min to 1 week)
-- **Edit Keys**: Get a separate editable URL to make changes while sharing a read-only link
-- **Quantum-Resistant Mode**: Wraps AES-256-GCM with ML-KEM-1024 key encapsulation for post-quantum security
-
-### Admin Dashboard
-A built-in admin dashboard for site operators, accessible at `/admin`:
-- **Secure Authentication**: Login with a pre-configured admin secret, JWT sessions stored in HTTP-only cookies
-- **Dashboard Statistics**: View total pastes, pending expiration, burn-after-read count, and total storage size
-- **Time-Series Charts**: Visualize paste creation over selectable time ranges (24h, 7d, 30d, 1y, all time, custom)
-- **Language Distribution**: See which programming languages are most popular
-- **Paste Management**: Browse, search, filter, and sort all pastes with a paginated table
-- **Bulk Operations**: Delete individual pastes or bulk delete up to 100 at once with confirmation dialogs
-- **Audit Logging**: All admin actions (login, logout, deletions) are logged server-side
-- **Separate Rate Limiting**: Admin endpoints have independent rate limits from the public API
-- **Auto-Disable**: Dashboard is completely disabled when `ADMIN_SECRET` is not configured
 
 ## Getting Started
 
