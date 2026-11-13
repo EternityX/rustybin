@@ -50,7 +50,7 @@ See how Rustybin stacks up against other popular paste services:
 - **Modern Design**: Clean, dark-themed UI built with React, TypeScript, and Tailwind CSS
 
 ## Security Warning
-- The [crate Rustybin uses for quantum encryption](docs.rs/ml-kem/latest/ml_kem) has never been independently audited before.
+- The [crate Rustybin uses for quantum encryption](https://docs.rs/ml-kem/latest/ml_kem) has never been independently audited before.
 
 ## Getting Started
 
