@@ -49,6 +49,9 @@ See how Rustybin stacks up against other popular paste services:
 - **SQLite Database**: Lightweight, file-based database for storing encrypted pastes
 - **Modern Design**: Clean, dark-themed UI built with React, TypeScript, and Tailwind CSS
 
+## Security Warning
+- The [crate Rustybin uses for quantum encryption](docs.rs/ml-kem/latest/ml_kem) has never been independently audited before.
+
 ## Getting Started
 
 ### Prerequisites
